@@ -1,7 +1,7 @@
 package require Tk
 #package require ttk
-catch {package require img::jpeg}
-package require zoom-canvas
+#catch {package require img::jpeg}
+#package require zoom-canvas
 
 # Get the current scripts directory
 
@@ -48,6 +48,21 @@ proc labelThing {args} {
   return $wl
 }
 
+set v(imgFmts) {}
+## natine fmts
+#lappend v(imgFmts) *.gif *.ppm 
+lappend v(imgFmts) {"gif Image" {.gif} {GIFF}}
+lappend v(imgFmts) {"ppm Image" {.ppm} {PPMf}}
+if {[catch {package require img::jpeg}]} {
+  ## not loaded
+  puts stderr "unable to load jpg image format library"
+} else {
+  lappend v(imgFmts) {"JPEG Image" {*.jpg .jpeg} {JPEG}}
+}
+## {png .png {PNGf}}
+## types doc at http://livecode.byu.edu/helps/file-creatorcodes.php
+
+#puts stderr $::tcl_platform(os)
 
 ## Menu
 grid [frame .m -relief raised -bd 2] -sticky ew
@@ -82,16 +97,16 @@ set f3 [.nb add [frame .nb.f3] -text machine]
 ## photo panel
 grid [frame $f1.i] -sticky nsew
 label $f1.i.srcLabel -text "Source Image"
-menubutton $f1.i.srcZoom -menu $f1.i.srcZoom.m -text "Zoom"
-menu $f1.i.srcZoom.m insert end -label "Fit" -command "srcZoom 1"
+#menubutton $f1.i.srcZoom -menu $f1.i.srcZoom.m -text "Zoom"
+#menu $f1.i.srcZoom.m insert end -label "Fit" -command "srcZoom 1"
 image create photo srcimg ;#
-label $f1.i.src -image srcimg -width 100 -height 100 -padx 2 -pady 2 -relief groove
+label $f1.i.src -image srcimg -width 100 -height 100 -bd 2 -relief groove
 frame $f1.i.srci -relief sunken -bd 2
 label $f1.i.dstLabel -text "Gcode Region"
 canvas $f1.i.dst -relief groove -bd 2
 frame $f1.i.dsti -relief sunken -bd 2
 grid $f1.i.srcLabel $f1.i.dstLabel -sticky ew
-grid $f1.i.src  $f1.i.dst -sticky nsew
+grid $f1.i.src  $f1.i.dst ;#-sticky nsew
 grid $f1.i.srci $f1.i.dsti -sticky nsew
 ##
 grid {*}[labelThing -path $f1.i.srci -name pw -text "img pixel width" -label -value ?]
@@ -106,51 +121,48 @@ grid {*}[labelThing -path $f1.i.dsti -name ppmm -text "pixels/mm" -label -value 
 proc srcZoom {zoom} {
   set ::v(srcZoom) $zoom
 }
-proc scaleImage {im xfactor {yfactor 0}} {
-
+proc scaleOfImage {im scale {imName {}}} {
   ## taken from: https://wiki.tcl-lang.org/page/Image+scaling
-  set mode -subsample
-  if {abs($xfactor) < 1} {
-    set xfactor [expr round(1./$xfactor)]
-  } elseif {$xfactor>=0 && $yfactor>=0} {
-    set mode -zoom
+  ## but changed.... a lot...
+  if {abs($scale) < 1} {
+    set num 10
+    set sf [expr {round(1.0*$num/$scale)}]
+    set t1 [image create photo]
+    $t1 copy $im -shrink -zoom $num
+    set t [image create photo {*}$imName]
+    $t copy $t1 -shrink -subsample $sf
+    image delete $t1
+  } else {
+    set num 10
+    set sf [expr {round($num*$scale)}]
+    set t1 [image create photo]
+    $t1 copy $im -shrink -zoom $sf
+    set t [image create photo {*}$imName]
+    $t copy $t1 -shrink -subsample $num
+    image delete $t1
   }
-  if {$yfactor == 0} {set yfactor $xfactor}
-  set t [image create photo]
-  $t copy $im
-  $im blank
-  $im copy $t -shrink $mode $xfactor $yfactor
-  image delete $t
-}
-proc scaleOfImage {im xfactor {yfactor 0} {imName {}}} {
-  ## taken from: https://wiki.tcl-lang.org/page/Image+scaling
-  set mode -subsample
-  if {abs($xfactor) < 1} {
-    set xfactor [expr round(1./$xfactor)]
-  } elseif {$xfactor>=0 && $yfactor>=0} {
-    set mode -zoom
-  }
-  if {$yfactor == 0} {set yfactor $xfactor}
-  set t [image create photo {*}$imName]
-  $t copy $im -shrink $mode $xfactor $yfactor
   return $t
 }
 
 ## LoadImg
 proc loadImg... {} {
-  set fName [tk_getOpenFile]
+  #puts stderr [format "formats=%s" $::v(imgFmts)]
+  set fName [tk_getOpenFile -filetypes $::v(imgFmts)]
   if {$fName ne ""} {
     global f1
     $f1.i.src config -image {}
     srcimg blank
     srcimg read $fName
-    $f1.i.src config -image srcimg
     set ::v(pw) [image width srcimg]
     set ::v(ph) [image height srcimg]
     set ::v(aspect) [expr {1.0*$::v(pw)/$::v(ph)}]
+    set scale [expr {100.0/$::v(pw)}]    
+    scaleOfImage srcimg $scale srcImgIcon
+    $f1.i.src config -image srcImgIcon
     set ::v(gX) $::v(pw)
     set ::v(gY) $::v(ph)
     set ::v(ppmm) 1
+    $::f1.i.dst config -width $::v(gX) -height $::v(gY)
   }
 }
 

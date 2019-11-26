@@ -17,6 +17,7 @@ package ifneeded img::base 1.4.3 [string map [list @ $dir] {
     Win* {
       load [file join {@} tkimg143.dll]
     }
+    Darwin* {error ""}
     default {error ""}
   }
   package provide img::base 1.4.3
