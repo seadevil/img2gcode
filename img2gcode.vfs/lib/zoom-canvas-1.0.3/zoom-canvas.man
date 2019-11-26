@@ -1,0 +1,338 @@
+[comment {-*- tcl -*- doctools manpage}]
+
+[comment {
+
+ Source file for doctools
+
+ Usage:
+ tclsh c:\tcl\lib\dtp.kit doc html zoom-canvas.man > zoom-canvas.html
+ tclsh c:\tcl\lib\dtp.kit doc wiki zoom-canvas.man > zoom-canvas.wiki.txt
+
+}]
+
+
+[manpage_begin zoom-canvas n 1.0]
+[copyright {2013, by A.Buratti}]
+[moddesc {Canvas with Zoom}]
+[titledesc  {a canvas-widget extension}]
+[category  {widgets}]
+[require Tk 8.5]
+[require zoom-canvas [opt 1.0]]
+
+[description]
+[cmd zoom-canvas] is an extension of the canvas-widget aimed to make more easy to display and
+operate on large canvas.
+It provides a builtin interactive zoom&panning.
+[para]
+With zoom-canvas, you are no more forced to resize your scene (world-model) when
+it's larger than the canvas viewport;
+You only need to adjust the zoom factor and the viewport will display a scaled portion of the scene.
+[para]
+That's all about it. Zoom and Pan !
+[para]
+The [cmd zoom-canvas] command creates the [arg pathName] widget and returns a new Tcl command whose name is [arg pathName]. 
+[list_begin definitions]
+[call [cmd zoom-canvas] [arg pathName] [opt "[arg option] [arg value]..."]]
+[list_end]
+
+[comment =====================================================================]
+[section {Coordinate Systems}]
+
+With a basic [widget canvas], you are used to work with 2 coordinate systems:
+[list_begin options]
+[opt_def "(C) Canvas Coord System"] The native [widget canvas] coord system
+[opt_def "(V) Viewport Coord System"] The visible portion of [widget canvas]
+[list_end]
+
+With [widget zoom-canvas] you need to base your work on a 3rd coordinate system:
+[list_begin options]
+[opt_def "(W) World Coord System"] The coord. system of your "world"
+[list_end]
+
+There's one simple rule:
+[para]
+You should always think in terms of World-Coords, but remember to operate in terms of Canvas-Coords.
+[para]
+There're new methods for converting between (W) (C) (V), you should use when drawing
+or moving items.
+[list_begin itemized]
+[item]
+ W2C - from (W) to (C)
+[item]
+ C2V - from (C) to (V)
+[item]
+ W2V - from (W) to (V)
+[para] 
+and the inverse
+[item]
+ V2C - from (V) to (C)
+[item]
+ C2W - from (C) to (W)
+[item]
+ V2W - from (V) to (W)
+[list_end]
+
+[para]
+A preliminary example: Draw a small circle with radius 1 micron (1E-6 meters)
+[example_begin]
+.c create oval [lb].c W2C -1E-6 -1E-6 1E-6 1E-6[rb]
+[example_end]
+Note  this is independent of the current zoom-factor; you can change the zoom-factor and then
+draw another identical circle with the same command. 
+[para]
+
+[comment =====================================================================]
+[subsection {Coordinate Systems properties}]
+
+[list_begin definitions]
+[def {(V) has origin (0,0) at the top-left corner of the 'visible' canvas-widget.}]
+When you pick mouse-coords(%x,%y), these are expressed in (V)
+[def {(C) is the 'native' canvas-widget coord system.}]
+There is a just a (dx,dy) translation between (C) and (V)
+[def {(W) is your-world coord system.}]
+- It is mapped onto (C) with a scale tranformation (f,-f).
+[para]
+- Note that Y axis is upward oriented (whilst in (C) and (V) is downward oriented).
+[para]
+- You can change the zoom-factor both interactively (mousewheel) and by program.
+[para]
+- You can also 'pan' the viewport both interactively (drag) and by program
+[list_end]
+
+[example_begin]
+  * Some more properties *
+  Note: arguments of W2C, W2V ... are 2d-points -
+    
+  W2C {0,0} = {0,0}
+  W2C( {ax,ay} + {bx,by} ) = W2C {ax,ay}  + W2C {bx,by}
+  W2C(a*{ax,ay}) = a*W2C {ax,ay}
+  - W2C is a linear transformation
+  
+  C2V({ax,ay} + {bx,by}) = {ax,ay} + C2V {bx,by}
+   therefore
+  C2V {ax,ay} = C2V({ax,ay}+{0,0}) = {ax,ay} + C2V {0,0} 
+ 
+  W2V(A) = C2V(W2C(A)) = W2C(A) + C2V(0)
+[example_end]
+
+
+[comment =====================================================================]
+[section {WIDGET OPTIONS}]
+[list_begin options]
+
+[opt_def ***]
+[widget zoom-canvas] supports [emph all] [widget canvas] options with few exceptions:
+  [option -scrollregion] [option -confine] 
+  [option -xscrollcommand] [option -yscrollcommand]  
+  [option -xscrollincrement] [option -yscrollincrement]
+[para]
+These options are useless since [widget zoom-canvas] provides better alternatives.
+
+[opt_def -userdata]
+it can be used for storing data
+
+[opt_def -zoomratio]
+A coefficient used for relative zoom (see [method rzoom])
+
+[opt_def -pointbmp]
+The default bitmap used for (next) point items.
+Note that argument should be the name of a predefined bitmap (e.g. a bitmap like
+"hourglass", "info", "quest_head" ... see [cmd Tk_GetBitmap]), or the name
+of a file containing a bitmap, in standard X11 or X10 bitmap format.
+Filenames must be prefixed by [emph @] (e.g. @/mybmps/start.xbm). The predefined
+bitmap is @/.../point.xbm, bundled within the package. 
+
+[list_end]
+
+[comment =====================================================================]
+[section {WIDGET COMMANDS}]
+
+The [cmd zoom-canvas] command creates a widget and a new Tcl command whose name is [arg pathName]. This command may be used to invoke various operations on the widget. It has the following general form: 
+[list_begin definitions]
+[def "[arg pathName] [arg subCommand] [opt [arg "arg ..."]]"]
+[list_end]
+
+The following [arg subCommands] are possible for [cmd zoom-canvas] widgets: 
+[list_begin definitions]
+
+[call ***]
+[emph All] canvas commands are supported with few exceptions
+ [method canvasx], [method canvasy], [method xview], [method yview]
+[para]
+These options are useless since [widget zoom-canvas] provides better alternatives.  
+
+[call [arg pathName] [method cget] [arg option]] 
+Returns the current value of the configuration option given by [arg option]. [arg Option] may have any of the values accepted by the [cmd zoom-canvas] command. 
+
+[call [arg pathName] [method configure] [opt [arg option]] [opt "[arg value] [arg option] [arg value] ..."]] 
+Query or modify the configuration options of the widget. If no [arg option] is specified, returns a list describing all of the available options for [arg pathName] (see Tk_ConfigureInfo for information on the format of this list). If [arg option] is specified with no value, then the command returns a list describing the one named option (this list will be identical to the corresponding sublist of the value returned if no option is specified). If one or more option-value pairs are specified, then the command modifies the given widget [arg option(s)] to have the given [arg value(s)]; in this case the command returns an empty string. Option may have any of the values accepted by the [cmd zoom-canvas] command. 
+
+[call [arg pathName] [method W2C] [opt [arg "x0 y0 ..."]]]
+[call [arg pathName] [method W2C] [opt [arg coordlist]]]
+[call [arg pathName] [method C2V] [opt [arg "x0 y0 ..."]]]
+[call [arg pathName] [method C2V] [opt [arg coordlist]]]
+[call [arg pathName] [method W2V] [opt [arg "x0 y0 ..."]]]
+[call [arg pathName] [method W2V] [opt [arg coordlist]]]
+
+[call [arg pathName] [method V2C] [opt [arg "x0 y0 ..."]]]
+[call [arg pathName] [method V2C] [opt [arg coordlist]]]
+[call [arg pathName] [method C2W] [opt [arg "x0 y0 ..."]]]
+[call [arg pathName] [method C2W] [opt [arg coordlist]]]
+[call [arg pathName] [method V2W] [opt [arg "x0 y0 ..."]]]
+[call [arg pathName] [method V2W] [opt [arg coordlist]]]
+
+Conversion between coord-systems. Note that parameters may be specified
+either as a sequence of coord-pairs, either as a list of coord-pairs.
+Result is a list of coord-pairs.
+ 
+
+[call [arg pathName] [method create] [arg point] x y  [opt "[arg option] [arg value]..."]]
+Create a point (actually a small bitmap) located at canvas-coord (x,y)
+Options are those of canvas-bitmap-item-type. If you omit the [option -bitmap]
+option, the default-bitmap is used (see [option -pointbmp] option).
+[para]
+[example_begin]
+ # create a point at WorldCoord (11,22)
+.c create point [lb].c W2C 11 22[rb]
+ # create a point with a new bitmap
+.c create point [lb].c W2C 100 200[rb] -bitmap @/mybmps/special.xbm
+ # create a RED point (with default bmp) and then change it to yellow
+set id [lb].c create point [lb].c W2C 200 200[rb] -foreground red[rb]
+.c itemconfigure $id -foreground yellow
+[example_end]
+ 
+[call [arg pathName] [method zoom]]
+Get the current zoom-factor
+[call [arg pathName] [method zoom] [arg zf]]
+Set the current zoom-factor 
+[call [arg pathName] [method zoom] [arg zf] [opt "[arg Wx] [arg Wy]"]]
+Set [arg zf] as thecurrent zoom-factor with (Wx,Wy) as the origin of the zoom 
+(i.e. (Wx,Wy) won't move).
+
+[call [arg pathName] [method rzoom] [arg delta]]
+Multiply-or-divide the zoom-factor by the [method -zoomration] coefficient.
+If [arg delta] is positive, zoom-factor is multiplied, else it's divided
+
+[call [arg pathName] [method rzoom] [arg delta] [opt "[arg Wx] [arg Wy]"]]
+same as above with (Wx,Wy) as the origin of the zoom
+
+[call [arg pathName] [method overlap] [arg Wx] [arg Wy] [arg Vx] [arg Vy]]
+collimate World-Point [arg (Wx,Wy)] with Viewport-Point [arg (Vx,Vy)]
+
+[call [arg pathName] [method scrollviewport] [arg dWx] [arg dWy]]
+scroll the viewport by [arg dWx],[arg dWy]. 
+Note that dWx,dWy are expressed in World-Coords
+
+
+[call [arg pathName] [method zoomfit] [opt [arg mode]] [opt "[arg Wx0] [arg Wy0] [arg Wx1] [arg Wy1]"]]
+find the best zoom so that all the canvas-items (or those enclosed by [arg Wx0] [arg Wy0] [arg Wx1] [arg Wy1]) will be visible.
+[arg mode] can be [const "x"] (best-width) [const "y"] (best-height) [const "xy"] (best fit).
+
+[list_end]
+
+[comment =====================================================================]
+[section {BINDINGS}]
+
+[widget zoom-canvas] provides built-in bindings for zooming and panning.
+
+[list_begin itemized]
+[item]
+[method zooming]
+Rotate the Mouse-wheel. 
+Note that the zoom coefficient may by adjusted with the [option -zoomratio]
+configuration option. 
+
+[item] 
+[method panning]
+Press Left-Button and drag
+
+[list_end]
+
+[subsection "Dragging canvas items VS. Dragging the whole canvas"]
+Since "pressing mouse button-1 and dragging" is the builtin mechanism used for
+moving the whole canvas (panning), if you want to use this same "natural" mechanism
+for moving single canvas-items, you should observe the following conventions:
+[list_begin itemized]
+[item]
+ add the special tag [const "draggable"] to every item that can be moved.
+[item]
+ bind <B1-Motion> to some draggable items ...
+[example_begin]$zoomCvs bind draggable <B1-Motion> { ... move item ...} ; # OK[example_end]
+[list_end]
+
+[subsection examples]
+[example_begin]
+ .zc bind all <B1-Motion> { ... move item ...} ; # WRONG !
+ .zc bind Dog <B1-Motion> { ... move item ...} ; # ... maybe WRONG; see the next
+ .zc bind draggable&&Dog <B1-Motion> { ... move item ...} ; # OK 
+ .zc bind 333 <B1-Motion> { ... move item ...} ; # KO if item 333 is not draggable.
+[example_end]  
+If you won't follow these simple rules, you'll get a *combined* item-move with a
+canvas move (panning) . That's caos.
+[para]
+If you follow these rules, then
+[list_begin itemized]
+[item] when you drag over a draggable item, you move the item
+[item] when you drag over a not-draggable item, or over "nothing", you move the canvas.
+[list_end]
+
+If you don't like these conventions, you should use different kry-events for
+dragging items and dragging canvas, e.g
+<B1> for panning
+<B2> for moving items 
+
+
+[comment =====================================================================]
+[section {EVENTS}]
+ Event [const <<Zoom>>] is generated when zoom changes.
+ This virtual-event carries some data that may be caught in binding script by the [const %d] substitution keyword.
+ Parameter [const %d] holds the new zoom factor
+
+  
+[comment =====================================================================]
+[section {Examples}]
+[example_begin]
+  #  create and display
+  pack [lb]zoom-canvas .c -background orange[rb] -fill both -expand true
+  #  set the zoom-factor to 0.3x  (centered on (0,0))
+  .c zoom 0.3
+  #
+### Draw a polyline (0,0) (1000,1000) (-2000,-1000)
+  #  Since the above coords are world-coords, you should transform them with W2C
+.c create line [lb].c W2C (0,0) (1000,1000) (-2000,-1000)[rb]
+  #
+### Move all items having tag "RED" by (500,200) (in world coords)
+  #  Since the above coords are world-coords, you should transform them with W2C
+.c move RED [lb].c W2C 500 200[rb]
+  #
+### When you pick a point (x,y) on the visible canvas (V), you should convert it to (W)
+  #
+.c bind <Button-1> { puts "You picked [lb]%W V2W %x %y[rb]" }
+
+[example_end]
+[comment =====================================================================]
+[section {Limitations}]
+[list_begin itemized]
+[item]
+item-text, item-images and item-window won't zoom !
+[item]
+line's width (thickness) won't zoom.
+[item]
+rotate ? that'impossible until ovals and rectangles won't change
+[list_end]
+ 
+[comment =====================================================================] 
+[section {BUGS, IDEAS, FEEDBACK}]
+[list_begin itemized]
+[item]
+-
+[item]
+-
+[list_end]
+
+[comment =====================================================================]
+
+
+[keywords Snit]
+[keywords widget]
+[manpage_end]

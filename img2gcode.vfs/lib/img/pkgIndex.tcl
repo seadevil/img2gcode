@@ -9,6 +9,18 @@ package ifneeded img::base 1.4.4 [string map [list @ $dir] {
   load [file join {@} libtkimg1.4.4.dylib]
   package provide img::base 1.4.4
 }]
+package ifneeded img::base 1.4.3 [string map [list @ $dir] {
+  package require Tcl 8.4
+  package require Tk 8.4
+  switch -glob -- $::tcl_platform(os) {
+    Lin* {error ""}
+    Win* {
+      load [file join {@} tkimg143.dll]
+    }
+    default {error ""}
+  }
+  package provide img::base 1.4.3
+}]
 
 ## img::jpeg
 package ifneeded img::jpeg 1.4.4 [string map [list @ $dir] {

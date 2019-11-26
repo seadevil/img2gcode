@@ -1,6 +1,7 @@
 package require Tk
 #package require ttk
-package require img::jpeg
+catch {package require img::jpeg}
+package require zoom-canvas
 
 # Get the current scripts directory
 
@@ -81,6 +82,8 @@ set f3 [.nb add [frame .nb.f3] -text machine]
 ## photo panel
 grid [frame $f1.i] -sticky nsew
 label $f1.i.srcLabel -text "Source Image"
+menubutton $f1.i.srcZoom -menu $f1.i.srcZoom.m -text "Zoom"
+menu $f1.i.srcZoom.m insert end -label "Fit" -command "srcZoom 1"
 image create photo srcimg ;#
 label $f1.i.src -image srcimg -width 100 -height 100 -padx 2 -pady 2 -relief groove
 frame $f1.i.srci -relief sunken -bd 2
@@ -99,6 +102,39 @@ grid {*}[labelThing -path $f1.i.dsti -name gX   -text "gcode width (mm)" -label 
 grid {*}[labelThing -path $f1.i.dsti -name gY   -text "gcode height (mm)" -label -value ?] -sticky ew
 grid {*}[labelThing -path $f1.i.dsti -name ppmm -text "pixels/mm" -label -value ? -scale {-from 1 -to 10 -showvalue 0 -command changePPMM}] -sticky ew
 
+## srcImg
+proc srcZoom {zoom} {
+  set ::v(srcZoom) $zoom
+}
+proc scaleImage {im xfactor {yfactor 0}} {
+
+  ## taken from: https://wiki.tcl-lang.org/page/Image+scaling
+  set mode -subsample
+  if {abs($xfactor) < 1} {
+    set xfactor [expr round(1./$xfactor)]
+  } elseif {$xfactor>=0 && $yfactor>=0} {
+    set mode -zoom
+  }
+  if {$yfactor == 0} {set yfactor $xfactor}
+  set t [image create photo]
+  $t copy $im
+  $im blank
+  $im copy $t -shrink $mode $xfactor $yfactor
+  image delete $t
+}
+proc scaleOfImage {im xfactor {yfactor 0} {imName {}}} {
+  ## taken from: https://wiki.tcl-lang.org/page/Image+scaling
+  set mode -subsample
+  if {abs($xfactor) < 1} {
+    set xfactor [expr round(1./$xfactor)]
+  } elseif {$xfactor>=0 && $yfactor>=0} {
+    set mode -zoom
+  }
+  if {$yfactor == 0} {set yfactor $xfactor}
+  set t [image create photo {*}$imName]
+  $t copy $im -shrink $mode $xfactor $yfactor
+  return $t
+}
 
 ## LoadImg
 proc loadImg... {} {
@@ -166,7 +202,8 @@ proc go {} {
              lappend G $g
              lappend B $b
 	  }
-        }
+	  #puts stderr [format "row= %s" $row]
+    }
 #puts stderr $R
 	set R [expr "([join $R "+"])/[llength $R]"]
 	set G [expr "([join $G "+"])/[llength $G]"]

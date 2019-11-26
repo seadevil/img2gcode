@@ -1,0 +1,430 @@
+
+<html><head>
+<title>zoom-canvas - Canvas with Zoom</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.toc,UL.toc UL, UL.toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.section, LI.subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.requirements LI, UL.syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'zoom-canvas.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2013, by A.Buratti
+   -->
+<! -- CVS: $Id$ zoom-canvas.n
+   -->
+<body><div class="doctools">
+<h1 class="title">zoom-canvas(n) 1.0  &quot;Canvas with Zoom&quot;</h1>
+<div id="name" class="section"><h2><a name="name">Name</a></h2>
+<p>zoom-canvas - a canvas-widget extension</p>
+</div>
+<div id="toc" class="section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="toc">
+<li class="section"><a href="#toc">Table Of Contents</a></li>
+<li class="section"><a href="#synopsis">Synopsis</a></li>
+<li class="section"><a href="#section1">Description</a></li>
+<li class="section"><a href="#section2">Coordinate Systems</a>
+<ul>
+<li class="subsection"><a href="#subsection1">Coordinate Systems properties</a></li>
+</ul>
+</li>
+<li class="section"><a href="#section3">WIDGET OPTIONS</a></li>
+<li class="section"><a href="#section4">WIDGET COMMANDS</a></li>
+<li class="section"><a href="#section5">BINDINGS</a>
+<ul>
+<li class="subsection"><a href="#subsection2">Dragging canvas items VS. Dragging the whole canvas</a></li>
+<li class="subsection"><a href="#subsection3">examples</a></li>
+</ul>
+</li>
+<li class="section"><a href="#section6">EVENTS</a></li>
+<li class="section"><a href="#section7">Examples</a></li>
+<li class="section"><a href="#section8">Limitations</a></li>
+<li class="section"><a href="#section9">BUGS, IDEAS, FEEDBACK</a></li>
+<li class="section"><a href="#keywords">Keywords</a></li>
+<li class="section"><a href="#category">Category</a></li>
+<li class="section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="synopsis">
+<ul class="requirements">
+<li>package require <b class="pkgname">Tk 8.5</b></li>
+<li>package require <b class="pkgname">zoom-canvas <span class="opt">?1.0?</span></b></li>
+</ul>
+<ul class="syntax">
+<li><a href="#1"><b class="cmd">zoom-canvas</b> <i class="arg">pathName</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></li>
+<li><a href="#2">***</a></li>
+<li><a href="#3"><i class="arg">pathName</i> <b class="method">cget</b> <i class="arg">option</i></a></li>
+<li><a href="#4"><i class="arg">pathName</i> <b class="method">configure</b> <span class="opt">?<i class="arg">option</i>?</span> <span class="opt">?<i class="arg">value</i> <i class="arg">option</i> <i class="arg">value</i> ...?</span></a></li>
+<li><a href="#5"><i class="arg">pathName</i> <b class="method">W2C</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></li>
+<li><a href="#6"><i class="arg">pathName</i> <b class="method">W2C</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></li>
+<li><a href="#7"><i class="arg">pathName</i> <b class="method">C2V</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></li>
+<li><a href="#8"><i class="arg">pathName</i> <b class="method">C2V</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></li>
+<li><a href="#9"><i class="arg">pathName</i> <b class="method">W2V</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></li>
+<li><a href="#10"><i class="arg">pathName</i> <b class="method">W2V</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></li>
+<li><a href="#11"><i class="arg">pathName</i> <b class="method">V2C</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></li>
+<li><a href="#12"><i class="arg">pathName</i> <b class="method">V2C</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></li>
+<li><a href="#13"><i class="arg">pathName</i> <b class="method">C2W</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></li>
+<li><a href="#14"><i class="arg">pathName</i> <b class="method">C2W</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></li>
+<li><a href="#15"><i class="arg">pathName</i> <b class="method">V2W</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></li>
+<li><a href="#16"><i class="arg">pathName</i> <b class="method">V2W</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></li>
+<li><a href="#17"><i class="arg">pathName</i> <b class="method">create</b> <i class="arg">point</i> x y <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></li>
+<li><a href="#18"><i class="arg">pathName</i> <b class="method">zoom</b></a></li>
+<li><a href="#19"><i class="arg">pathName</i> <b class="method">zoom</b> <i class="arg">zf</i></a></li>
+<li><a href="#20"><i class="arg">pathName</i> <b class="method">zoom</b> <i class="arg">zf</i> <span class="opt">?<i class="arg">Wx</i> <i class="arg">Wy</i>?</span></a></li>
+<li><a href="#21"><i class="arg">pathName</i> <b class="method">rzoom</b> <i class="arg">delta</i></a></li>
+<li><a href="#22"><i class="arg">pathName</i> <b class="method">rzoom</b> <i class="arg">delta</i> <span class="opt">?<i class="arg">Wx</i> <i class="arg">Wy</i>?</span></a></li>
+<li><a href="#23"><i class="arg">pathName</i> <b class="method">overlap</b> <i class="arg">Wx</i> <i class="arg">Wy</i> <i class="arg">Vx</i> <i class="arg">Vy</i></a></li>
+<li><a href="#24"><i class="arg">pathName</i> <b class="method">scrollviewport</b> <i class="arg">dWx</i> <i class="arg">dWy</i></a></li>
+<li><a href="#25"><i class="arg">pathName</i> <b class="method">zoomfit</b> <span class="opt">?<i class="arg">mode</i>?</span> <span class="opt">?<i class="arg">Wx0</i> <i class="arg">Wy0</i> <i class="arg">Wx1</i> <i class="arg">Wy1</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="section"><h2><a name="section1">Description</a></h2>
+<p><b class="cmd">zoom-canvas</b> is an extension of the canvas-widget aimed to make more easy to display and
+operate on large canvas.
+It provides a builtin interactive zoom&amp;panning.</p>
+<p>With zoom-canvas, you are no more forced to resize your scene (world-model) when
+it's larger than the canvas viewport;
+You only need to adjust the zoom factor and the viewport will display a scaled portion of the scene.</p>
+<p>That's all about it. Zoom and Pan !</p>
+<p>The <b class="cmd">zoom-canvas</b> command creates the <i class="arg">pathName</i> widget and returns a new Tcl command whose name is <i class="arg">pathName</i>.</p>
+<dl class="definitions">
+<dt><a name="1"><b class="cmd">zoom-canvas</b> <i class="arg">pathName</i> <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="section2" class="section"><h2><a name="section2">Coordinate Systems</a></h2>
+<p>With a basic <b class="widget">canvas</b>, you are used to work with 2 coordinate systems:</p>
+<dl class="options">
+<dt><b class="option">(C) Canvas Coord System</b></dt>
+<dd><p>The native <b class="widget">canvas</b> coord system</p></dd>
+<dt><b class="option">(V) Viewport Coord System</b></dt>
+<dd><p>The visible portion of <b class="widget">canvas</b></p></dd>
+</dl>
+<p>With <b class="widget">zoom-canvas</b> you need to base your work on a 3rd coordinate system:</p>
+<dl class="options">
+<dt><b class="option">(W) World Coord System</b></dt>
+<dd><p>The coord. system of your &quot;world&quot;</p></dd>
+</dl>
+<p>There's one simple rule:</p>
+<p>You should always think in terms of World-Coords, but remember to operate in terms of Canvas-Coords.</p>
+<p>There're new methods for converting between (W) (C) (V), you should use when drawing
+or moving items.</p>
+<ul class="itemized">
+<li><p>W2C - from (W) to (C)</p></li>
+<li><p>C2V - from (C) to (V)</p></li>
+<li><p>W2V - from (W) to (V)</p>
+<p>and the inverse</p></li>
+<li><p>V2C - from (V) to (C)</p></li>
+<li><p>C2W - from (C) to (W)</p></li>
+<li><p>V2W - from (V) to (W)</p></li>
+</ul>
+<p>A preliminary example: Draw a small circle with radius 1 micron (1E-6 meters)</p>
+<pre class="example">
+.c create oval [.c W2C -1E-6 -1E-6 1E-6 1E-6]
+</pre>
+<p>Note  this is independent of the current zoom-factor; you can change the zoom-factor and then
+draw another identical circle with the same command.</p>
+<div id="subsection1" class="subsection"><h3><a name="subsection1">Coordinate Systems properties</a></h3>
+<dl class="definitions">
+<dt>(V) has origin (0,0) at the top-left corner of the 'visible' canvas-widget.</dt>
+<dd><p>When you pick mouse-coords(%x,%y), these are expressed in (V)</p></dd>
+<dt>(C) is the 'native' canvas-widget coord system.</dt>
+<dd><p>There is a just a (dx,dy) translation between (C) and (V)</p></dd>
+<dt>(W) is your-world coord system.</dt>
+<dd><p>- It is mapped onto (C) with a scale tranformation (f,-f).</p>
+<p>- Note that Y axis is upward oriented (whilst in (C) and (V) is downward oriented).</p>
+<p>- You can change the zoom-factor both interactively (mousewheel) and by program.</p>
+<p>- You can also 'pan' the viewport both interactively (drag) and by program</p></dd>
+</dl>
+<pre class="example">
+  * Some more properties *
+  Note: arguments of W2C, W2V ... are 2d-points -
+    
+  W2C {0,0} = {0,0}
+  W2C( {ax,ay} + {bx,by} ) = W2C {ax,ay}  + W2C {bx,by}
+  W2C(a*{ax,ay}) = a*W2C {ax,ay}
+  - W2C is a linear transformation
+  
+  C2V({ax,ay} + {bx,by}) = {ax,ay} + C2V {bx,by}
+   therefore
+  C2V {ax,ay} = C2V({ax,ay}+{0,0}) = {ax,ay} + C2V {0,0} 
+ 
+  W2V(A) = C2V(W2C(A)) = W2C(A) + C2V(0)
+</pre>
+</div>
+</div>
+<div id="section3" class="section"><h2><a name="section3">WIDGET OPTIONS</a></h2>
+<dl class="options">
+<dt><b class="option">***</b></dt>
+<dd><p><b class="widget">zoom-canvas</b> supports <em>all</em> <b class="widget">canvas</b> options with few exceptions:
+  <b class="option">-scrollregion</b> <b class="option">-confine</b> 
+  <b class="option">-xscrollcommand</b> <b class="option">-yscrollcommand</b>  
+  <b class="option">-xscrollincrement</b> <b class="option">-yscrollincrement</b></p>
+<p>These options are useless since <b class="widget">zoom-canvas</b> provides better alternatives.</p></dd>
+<dt><b class="option">-userdata</b></dt>
+<dd><p>it can be used for storing data</p></dd>
+<dt><b class="option">-zoomratio</b></dt>
+<dd><p>A coefficient used for relative zoom (see <b class="method">rzoom</b>)</p></dd>
+<dt><b class="option">-pointbmp</b></dt>
+<dd><p>The default bitmap used for (next) point items.
+Note that argument should be the name of a predefined bitmap (e.g. a bitmap like
+&quot;hourglass&quot;, &quot;info&quot;, &quot;quest_head&quot; ... see <b class="cmd">Tk_GetBitmap</b>), or the name
+of a file containing a bitmap, in standard X11 or X10 bitmap format.
+Filenames must be prefixed by <em>@</em> (e.g. @/mybmps/start.xbm). The predefined
+bitmap is @/.../point.xbm, bundled within the package.</p></dd>
+</dl>
+</div>
+<div id="section4" class="section"><h2><a name="section4">WIDGET COMMANDS</a></h2>
+<p>The <b class="cmd">zoom-canvas</b> command creates a widget and a new Tcl command whose name is <i class="arg">pathName</i>. This command may be used to invoke various operations on the widget. It has the following general form:</p>
+<dl class="definitions">
+<dt><i class="arg">pathName</i> <i class="arg">subCommand</i> <span class="opt">?<i class="arg">arg ...</i>?</span></dt>
+<dd></dd>
+</dl>
+<p>The following <i class="arg">subCommands</i> are possible for <b class="cmd">zoom-canvas</b> widgets:</p>
+<dl class="definitions">
+<dt><a name="2">***</a></dt>
+<dd><p><em>All</em> canvas commands are supported with few exceptions
+ <b class="method">canvasx</b>, <b class="method">canvasy</b>, <b class="method">xview</b>, <b class="method">yview</b></p>
+<p>These options are useless since <b class="widget">zoom-canvas</b> provides better alternatives.</p></dd>
+<dt><a name="3"><i class="arg">pathName</i> <b class="method">cget</b> <i class="arg">option</i></a></dt>
+<dd><p>Returns the current value of the configuration option given by <i class="arg">option</i>. <i class="arg">Option</i> may have any of the values accepted by the <b class="cmd">zoom-canvas</b> command.</p></dd>
+<dt><a name="4"><i class="arg">pathName</i> <b class="method">configure</b> <span class="opt">?<i class="arg">option</i>?</span> <span class="opt">?<i class="arg">value</i> <i class="arg">option</i> <i class="arg">value</i> ...?</span></a></dt>
+<dd><p>Query or modify the configuration options of the widget. If no <i class="arg">option</i> is specified, returns a list describing all of the available options for <i class="arg">pathName</i> (see Tk_ConfigureInfo for information on the format of this list). If <i class="arg">option</i> is specified with no value, then the command returns a list describing the one named option (this list will be identical to the corresponding sublist of the value returned if no option is specified). If one or more option-value pairs are specified, then the command modifies the given widget <i class="arg">option(s)</i> to have the given <i class="arg">value(s)</i>; in this case the command returns an empty string. Option may have any of the values accepted by the <b class="cmd">zoom-canvas</b> command.</p></dd>
+<dt><a name="5"><i class="arg">pathName</i> <b class="method">W2C</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="6"><i class="arg">pathName</i> <b class="method">W2C</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="7"><i class="arg">pathName</i> <b class="method">C2V</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="8"><i class="arg">pathName</i> <b class="method">C2V</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="9"><i class="arg">pathName</i> <b class="method">W2V</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="10"><i class="arg">pathName</i> <b class="method">W2V</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="11"><i class="arg">pathName</i> <b class="method">V2C</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="12"><i class="arg">pathName</i> <b class="method">V2C</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="13"><i class="arg">pathName</i> <b class="method">C2W</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="14"><i class="arg">pathName</i> <b class="method">C2W</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="15"><i class="arg">pathName</i> <b class="method">V2W</b> <span class="opt">?<i class="arg">x0 y0 ...</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="16"><i class="arg">pathName</i> <b class="method">V2W</b> <span class="opt">?<i class="arg">coordlist</i>?</span></a></dt>
+<dd><p>Conversion between coord-systems. Note that parameters may be specified
+either as a sequence of coord-pairs, either as a list of coord-pairs.
+Result is a list of coord-pairs.</p></dd>
+<dt><a name="17"><i class="arg">pathName</i> <b class="method">create</b> <i class="arg">point</i> x y <span class="opt">?<i class="arg">option</i> <i class="arg">value</i>...?</span></a></dt>
+<dd><p>Create a point (actually a small bitmap) located at canvas-coord (x,y)
+Options are those of canvas-bitmap-item-type. If you omit the <b class="option">-bitmap</b>
+option, the default-bitmap is used (see <b class="option">-pointbmp</b> option).</p>
+<pre class="example">
+ # create a point at WorldCoord (11,22)
+.c create point [.c W2C 11 22]
+ # create a point with a new bitmap
+.c create point [.c W2C 100 200] -bitmap @/mybmps/special.xbm
+ # create a RED point (with default bmp) and then change it to yellow
+set id [.c create point [.c W2C 200 200] -foreground red]
+.c itemconfigure $id -foreground yellow
+</pre>
+</dd>
+<dt><a name="18"><i class="arg">pathName</i> <b class="method">zoom</b></a></dt>
+<dd><p>Get the current zoom-factor</p></dd>
+<dt><a name="19"><i class="arg">pathName</i> <b class="method">zoom</b> <i class="arg">zf</i></a></dt>
+<dd><p>Set the current zoom-factor</p></dd>
+<dt><a name="20"><i class="arg">pathName</i> <b class="method">zoom</b> <i class="arg">zf</i> <span class="opt">?<i class="arg">Wx</i> <i class="arg">Wy</i>?</span></a></dt>
+<dd><p>Set <i class="arg">zf</i> as thecurrent zoom-factor with (Wx,Wy) as the origin of the zoom 
+(i.e. (Wx,Wy) won't move).</p></dd>
+<dt><a name="21"><i class="arg">pathName</i> <b class="method">rzoom</b> <i class="arg">delta</i></a></dt>
+<dd><p>Multiply-or-divide the zoom-factor by the <b class="method">-zoomration</b> coefficient.
+If <i class="arg">delta</i> is positive, zoom-factor is multiplied, else it's divided</p></dd>
+<dt><a name="22"><i class="arg">pathName</i> <b class="method">rzoom</b> <i class="arg">delta</i> <span class="opt">?<i class="arg">Wx</i> <i class="arg">Wy</i>?</span></a></dt>
+<dd><p>same as above with (Wx,Wy) as the origin of the zoom</p></dd>
+<dt><a name="23"><i class="arg">pathName</i> <b class="method">overlap</b> <i class="arg">Wx</i> <i class="arg">Wy</i> <i class="arg">Vx</i> <i class="arg">Vy</i></a></dt>
+<dd><p>collimate World-Point <i class="arg">(Wx,Wy)</i> with Viewport-Point <i class="arg">(Vx,Vy)</i></p></dd>
+<dt><a name="24"><i class="arg">pathName</i> <b class="method">scrollviewport</b> <i class="arg">dWx</i> <i class="arg">dWy</i></a></dt>
+<dd><p>scroll the viewport by <i class="arg">dWx</i>,<i class="arg">dWy</i>. 
+Note that dWx,dWy are expressed in World-Coords</p></dd>
+<dt><a name="25"><i class="arg">pathName</i> <b class="method">zoomfit</b> <span class="opt">?<i class="arg">mode</i>?</span> <span class="opt">?<i class="arg">Wx0</i> <i class="arg">Wy0</i> <i class="arg">Wx1</i> <i class="arg">Wy1</i>?</span></a></dt>
+<dd><p>find the best zoom so that all the canvas-items (or those enclosed by <i class="arg">Wx0</i> <i class="arg">Wy0</i> <i class="arg">Wx1</i> <i class="arg">Wy1</i>) will be visible.
+<i class="arg">mode</i> can be <b class="const">x</b> (best-width) <b class="const">y</b> (best-height) <b class="const">xy</b> (best fit).</p></dd>
+</dl>
+</div>
+<div id="section5" class="section"><h2><a name="section5">BINDINGS</a></h2>
+<p><b class="widget">zoom-canvas</b> provides built-in bindings for zooming and panning.</p>
+<ul class="itemized">
+<li><p><b class="method">zooming</b>
+Rotate the Mouse-wheel. 
+Note that the zoom coefficient may by adjusted with the <b class="option">-zoomratio</b>
+configuration option.</p></li>
+<li><p><b class="method">panning</b>
+Press Left-Button and drag</p></li>
+</ul>
+<div id="subsection2" class="subsection"><h3><a name="subsection2">Dragging canvas items VS. Dragging the whole canvas</a></h3>
+<p>Since &quot;pressing mouse button-1 and dragging&quot; is the builtin mechanism used for
+moving the whole canvas (panning), if you want to use this same &quot;natural&quot; mechanism
+for moving single canvas-items, you should observe the following conventions:</p>
+<ul class="itemized">
+<li><p>add the special tag <b class="const">draggable</b> to every item that can be moved.</p></li>
+<li><p>bind &lt;B1-Motion&gt; to some draggable items ...</p>
+<pre class="example">$zoomCvs bind draggable &lt;B1-Motion&gt; { ... move item ...} ; # OK</pre>
+</li>
+</ul>
+</div>
+<div id="subsection3" class="subsection"><h3><a name="subsection3">examples</a></h3>
+<pre class="example">
+ .zc bind all &lt;B1-Motion&gt; { ... move item ...} ; # WRONG !
+ .zc bind Dog &lt;B1-Motion&gt; { ... move item ...} ; # ... maybe WRONG; see the next
+ .zc bind draggable&amp;&amp;Dog &lt;B1-Motion&gt; { ... move item ...} ; # OK 
+ .zc bind 333 &lt;B1-Motion&gt; { ... move item ...} ; # KO if item 333 is not draggable.
+</pre>
+<p>If you won't follow these simple rules, you'll get a *combined* item-move with a
+canvas move (panning) . That's caos.</p>
+<p>If you follow these rules, then</p>
+<ul class="itemized">
+<li><p>when you drag over a draggable item, you move the item</p></li>
+<li><p>when you drag over a not-draggable item, or over &quot;nothing&quot;, you move the canvas.</p></li>
+</ul>
+<p>If you don't like these conventions, you should use different kry-events for
+dragging items and dragging canvas, e.g
+&lt;B1&gt; for panning
+&lt;B2&gt; for moving items</p>
+</div>
+</div>
+<div id="section6" class="section"><h2><a name="section6">EVENTS</a></h2>
+<p>Event <b class="const">&lt;&lt;Zoom&gt;&gt;</b> is generated when zoom changes.
+ This virtual-event carries some data that may be caught in binding script by the <b class="const">%d</b> substitution keyword.
+ Parameter <b class="const">%d</b> holds the new zoom factor</p>
+</div>
+<div id="section7" class="section"><h2><a name="section7">Examples</a></h2>
+<pre class="example">
+  #  create and display
+  pack [zoom-canvas .c -background orange] -fill both -expand true
+  #  set the zoom-factor to 0.3x  (centered on (0,0))
+  .c zoom 0.3
+  #
+### Draw a polyline (0,0) (1000,1000) (-2000,-1000)
+  #  Since the above coords are world-coords, you should transform them with W2C
+.c create line [.c W2C (0,0) (1000,1000) (-2000,-1000)]
+  #
+### Move all items having tag &quot;RED&quot; by (500,200) (in world coords)
+  #  Since the above coords are world-coords, you should transform them with W2C
+.c move RED [.c W2C 500 200]
+  #
+### When you pick a point (x,y) on the visible canvas (V), you should convert it to (W)
+  #
+.c bind &lt;Button-1&gt; { puts &quot;You picked [%W V2W %x %y]&quot; }
+</pre>
+</div>
+<div id="section8" class="section"><h2><a name="section8">Limitations</a></h2>
+<ul class="itemized">
+<li><p>item-text, item-images and item-window won't zoom !</p></li>
+<li><p>line's width (thickness) won't zoom.</p></li>
+<li><p>rotate ? that'impossible until ovals and rectangles won't change</p></li>
+</ul>
+</div>
+<div id="section9" class="section"><h2><a name="section9">BUGS, IDEAS, FEEDBACK</a></h2>
+<ul class="itemized">
+<li><p>-</p></li>
+<li><p>-</p></li>
+</ul>
+</div>
+<div id="keywords" class="section"><h2><a name="keywords">Keywords</a></h2>
+<p>Snit, widget</p>
+</div>
+<div id="category" class="section"><h2><a name="category">Category</a></h2>
+<p>widgets</p>
+</div>
+<div id="copyright" class="section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2013, by A.Buratti</p>
+</div>
+</div></body></html>
