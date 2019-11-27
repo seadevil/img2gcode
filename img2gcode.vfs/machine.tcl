@@ -20,10 +20,12 @@ namespace eval machine {
   	set v(yp) $y
   }
   proc Frame {w} {
-  	frame $w -relief ridge -bd 2 -bg grey
-  	label $w.lb -text "Machine Settings"
-  	grid $w.lb
-  	grid {*}[labelThing -path $w -name laserFmt -variable [namespace current]::v(laserFmt) -text "gcode for laser level =" -label -value ?] -sticky ew
-  	return $w
+    frame $w -relief ridge -bd 2 -bg grey
+    label $w.lb -text "Machine Settings"
+    grid $w.lb
+    grid {*}[labelThing -path $w -name laserFmt -variable [namespace current]::v(laserFmt) -text "gcode for laser level =" -label -value ?] -sticky ew
+    grid {*}[labelThing -path $w -name spotY    -variable [namespace current]::v(spotY)    -text "Laser spot size Y (mm)"  -entry -value 1] -sticky ew
+    grid {*}[labelThing -path $w -name spotX    -variable [namespace current]::v(spotX)    -text "laser spot size X (mm)"  -entry -value 1] -sticky ew
+    return $w
   }
 }

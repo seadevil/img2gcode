@@ -61,9 +61,9 @@ proc srcZoom {zoom} {
 grid [frame $f1.t -relief sunken -bd 2] -sticky ew
 button $f1.t.gs -text "Convert to greyscale" -command {srcimg configure -palette 256}
 grid $f1.t.gs
-grid {*}[labelEntry $f1.t pps "pixels per scanline" 7]
-grid {*}[labelEntry $f1.t ss  "laser spot size (in mm)" 7]
-button $f1.t.go -text "go" -command rast::go
+#grid {*}[labelEntry $f1.t pps "pixels per scanline" 7]
+#grid {*}[labelEntry $f1.t ss  "laser spot size (in mm)" 7]
+button $f1.t.go -text "simulate" -command rast::rasterize
 grid $f1.t.go
 
 

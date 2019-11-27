@@ -4,48 +4,72 @@
 
 namespace eval rast {
   #
-  proc go {} {
+  proc rasterize {} {
     global f1
+    variable v
     set W [image width srcimg]
     set H [image height srcimg]
-    set w [expr {$W/$::v(pps)}]
-    set h [expr {$H/$::v(pps)}]
-    #set xp 0
-    #set yp 0
+    #set w [expr {$W/$::v(pps)}]
+    #set h [expr {$H/$::v(pps)}]
+    ## gcode window coords
+    set Y0 [expr {0}]
+    set Y1 [expr {$v(gY)}]
+    set X0 [expr {0}]
+    set X1 [expr {$v(gX)}]
     Dst delete all
-    for {set y 0} {$y < $h} {incr y 1} {
-      set Y0 [expr {$::v(pps)*($y)}]
-      set Y1 [expr {$::v(pps)*($y+1)}]
-      set Y  [expr {round($::v(pps)*($y+0.5))}]
-      for {set x 0} {$x < $w} {incr x 1} {
-        set X0 [expr {$::v(pps)*($x)}]
-        set X1 [expr {$::v(pps)*($x+1)}]
-        set X  [expr {round($::v(pps)*($x+0.5))}]
+    for {set Y $Y0} {$Y < $Y1} {incr Y $::machine::v(spotY)} {
+      # scan bottom to top. (images are top=0 so we will need to invert Y)
+      #- the raster size Y0...Y1 centered at Y in gcode coords (bottom to top)
+      # compute the window in image coords
+      set y1 [expr {$v(ppmm)*($H-$Y)}] ;#<--------------------------- image-rows top
+      set y0 [expr {$v(ppmm)*($H-($Y+$::machine::v(spotY)))}];#<----- image-rows bottom (N pixels below top), but dont scan this row twice...
+      # compute inverted Yi (canvas coords Y is at top)
+      set Yi [expr {($Y1-$Y)+(($::machine::v(spotY))/2)}] ;# add a 1/2Y offset to center the line within the raster-spot-row
+  	  #Dst create line $X0 $Yi $X1 $Yi -width 1 -fill red -tags hilight ; update idletasks
+  	  #Dst delete hilight
+      for {set X $X0} {$X < $X1} {incr X $::machine::v(spotX)} {
+      	# find x0..x1 in image coords
+        set x0 [expr {$v(ppmm)*$X}] ;#<------------------------------ image-col left
+        set x1 [expr {min($v(ppmm)*($X+$::machine::v(spotX)),$W)}] ;#<------- image-col right, but dont repeat col twice
         # find average of pixels xp...x  yp...y X0...X1 Y0...Y1 (centered at X Y)
-        if {1} {
-          set data [srcimg data -from $X0 $Y0 $X1 $Y1 -grayscale]
-  	      #puts stderr [format "data=%s" $data]
-  	      catch {unset R; unset G; unset B}
-  	      foreach row $data {
-  	        foreach column $row {
-              scan $column "#%2x%2x%2x" r g b
-              lappend R $r
-              lappend G $g
-              lappend B $b
-  	        }
-  	        #puts stderr [format "row= %s" $row]
+        switch {new} {
+          new {
+          	#puts stderr [format "x0:x1=%d:%d   y0:y1=%d:%d" $x0 $x1 $y0 $y1]
+            set data [srcimg data -from $x0 $y0 $x1 $y1 -grayscale]
+    	    #puts stderr [format "data=%s" $data]
+  	        catch {unset R; unset G; unset B}
+  	        foreach row $data {
+  	          foreach column $row {
+                scan $column "#%2x%2x%2x" r g b
+                lappend R $r
+                lappend G $g
+                lappend B $b
+  	          }
+  	          #puts stderr [format "row= %s" $row]
+            }
+            #puts stderr [format "R=%s G=%s B=%s" $R $G $B]
+  	        set R [expr "([join $R "+"])/[llength $R]"]
+  	        set G [expr "([join $G "+"])/[llength $G]"]
+  	        set B [expr "([join $B "+"])/[llength $B]"]
+            #puts stderr [format "R=%s G=%s B=%s" $R $G $B]
           }
-          #puts stderr $R
-  	      set R [expr "([join $R "+"])/[llength $R]"]
-  	      set G [expr "([join $G "+"])/[llength $G]"]
-  	      set B [expr "([join $B "+"])/[llength $B]"]
-        } else {
-          lassign [srcimg get $X $Y] R G B
+          old {
+            lassign [srcimg get $x0 $y0] R G B
+          }
         }
         set lvl [expr {round(sqrt($R*$R+$G*$G+$B*$B))}]
-        if {[info exists xp] && [info exists yp]} {
-  	      Dst create line  $xp $Y0 $X $Y0 -width $::v(ss)  -fill [format "#%02x%02x%02x" $R $G $B]
-  	      #update idletasks
+        switch {new} {
+          old {
+            if {[info exists xp] && [info exists yp]} {
+    	      Dst create line  $xp $Y0 $X $Y0 -width $::v(ss)  -fill [format "#%02x%02x%02x" $R $G $B]
+  	          #update idletasks
+  	        }
+  	      }
+  	      new {
+          	set Xi(0) [expr {$X}]
+          	set Xi(1) [expr {$X+$::machine::v(spotX)}]
+          	Dst create line $Xi(0) $Yi $Xi(1) $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $R $G $B]
+          }
         }
         set xp $X
       }
