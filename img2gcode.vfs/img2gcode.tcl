@@ -10,57 +10,10 @@ package require Tk
 
 #source [file join $starkit::topdir funcs.tcl]
 
-#helpers
-proc shift {vname} {
-  upvar $vname x
-  #set ans [lindex $x 0]
-  set x [lassign $x ans]
-  return $ans
-}
-proc labelEntry {path name text value} {
-  label $path.${name}l -text $text
-  entry $path.${name}e -textvariable v($name)
-  set ::v($name) $value
-  return [list $path.${name}l $path.${name}e]
-}
-proc labelThing {args} {
-  set path ".t"
-  set name "name"
-  set scr {}
-  set wl {}
-  while {[llength $args] > 0} {
-    set cmd [shift args]
-    switch -- $cmd {
-      -path {set path [shift args]}
-      -name {set name [shift args]}
-      -text  {lappend scr [subst -novariables {label $path.${name}l -text "[shift args]" -anchor w; lappend wl $path.${name}l}]}
-      -entry {lappend scr [subst -novariables {entry $path.${name}e -textvariable ::v($name); lappend wl $path.${name}e}]}
-      -label {lappend scr [subst -novariables {label $path.${name}v -textvariable ::v($name) -relief sunken -bd 2; lappend wl $path.${name}v}]}
-      -value {lappend scr [subst -novariables {set ::v($name) [shift args]}]}
-      -cmd   {lappend scr [subst -novariables {button $path.${name}c -text "[shift args]" -command [shift args]; lappend wl $path.${name}c}]}
-      -scale {lappend scr [subst -novariables {scale $path.${name}s -variable ::v($name) -orient horizontal {*}[shift args]; lappend wl $path.${name}s}]}
-      default {error "labelThing bad cmd=$cmd"}
-    }
-    #puts stderr [format "labelThing: cmd='%s' scr='%s'" $cmd $scr]
-  }
-  #puts stderr [join $scr "\n  "]
-  eval [join $scr "\n"]
-  return $wl
-}
-
-set v(imgFmts) {}
-## natine fmts
-#lappend v(imgFmts) *.gif *.ppm 
-lappend v(imgFmts) {"gif Image" {.gif} {GIFF}}
-lappend v(imgFmts) {"ppm Image" {.ppm} {PPMf}}
-if {[catch {package require img::jpeg}]} {
-  ## not loaded
-  puts stderr "unable to load jpg image format library"
-} else {
-  lappend v(imgFmts) {"JPEG Image" {*.jpg .jpeg} {JPEG}}
-}
-## {png .png {PNGf}}
-## types doc at http://livecode.byu.edu/helps/file-creatorcodes.php
+source [file join $v(root) "helpers.tcl"]
+source [file join $v(root) "image.tcl"]
+source [file join $v(root) "machine.tcl"]
+source [file join $v(root) "rasterize.tcl"]
 
 #puts stderr $::tcl_platform(os)
 
@@ -70,7 +23,7 @@ grid [frame .m -relief raised -bd 2] -sticky ew
 menubutton .m.f -menu .m.f.m -text "File"
 menu .m.f.m
 .m.f.m insert end command -label "Exit" -command exit
-.m.f.m insert 0 command -label "Load Img..." -command loadImg...
+.m.f.m insert 0 command -label "Load Img..." -command image::Load...
 
 ## View Menu
 menubutton .m.v -menu .m.v.m -text "View"
@@ -90,81 +43,21 @@ grid .m.f .m.v
 ttk::notebook .nb
 grid .nb -sticky nsew
 .nb add [frame .nb.f1] -text src/dst  ;set f1 .nb.f1
-set f2 [.nb add [frame .nb.f2] -text log]
-set f3 [.nb add [frame .nb.f3] -text machine]
+.nb add [frame .nb.f2] -text log; set f2 .nb.f2
+.nb add [machine::Frame .nb.f3] -text machine; set f3 .nb.f3
 
 
 ## photo panel
 grid [frame $f1.i] -sticky nsew
-label $f1.i.srcLabel -text "Source Image"
-#menubutton $f1.i.srcZoom -menu $f1.i.srcZoom.m -text "Zoom"
-#menu $f1.i.srcZoom.m insert end -label "Fit" -command "srcZoom 1"
-image create photo srcimg ;#
-label $f1.i.src -image srcimg -width 100 -height 100 -bd 2 -relief groove
-frame $f1.i.srci -relief sunken -bd 2
-label $f1.i.dstLabel -text "Gcode Region"
-canvas $f1.i.dst -relief groove -bd 2
-frame $f1.i.dsti -relief sunken -bd 2
-grid $f1.i.srcLabel $f1.i.dstLabel -sticky ew
-grid $f1.i.src  $f1.i.dst ;#-sticky nsew
-grid $f1.i.srci $f1.i.dsti -sticky nsew
-##
-grid {*}[labelThing -path $f1.i.srci -name pw -text "img pixel width" -label -value ?]
-grid {*}[labelThing -path $f1.i.srci -name ph -text "img pixel height" -label -value ?]
-grid {*}[labelThing -path $f1.i.srci -name aspect -text "img aspect w/h" -label -value ?]
-##
-grid {*}[labelThing -path $f1.i.dsti -name gX   -text "gcode width (mm)" -label -value ?] -sticky ew
-grid {*}[labelThing -path $f1.i.dsti -name gY   -text "gcode height (mm)" -label -value ?] -sticky ew
-grid {*}[labelThing -path $f1.i.dsti -name ppmm -text "pixels/mm" -label -value ? -scale {-from 1 -to 10 -showvalue 0 -command changePPMM}] -sticky ew
+grid [image::Frame $f1.i.src] [rast::Frame $f1.i.dst] -sticky nsew
+
 
 ## srcImg
 proc srcZoom {zoom} {
   set ::v(srcZoom) $zoom
 }
-proc scaleOfImage {im scale {imName {}}} {
-  ## taken from: https://wiki.tcl-lang.org/page/Image+scaling
-  ## but changed.... a lot...
-  if {abs($scale) < 1} {
-    set num 10
-    set sf [expr {round(1.0*$num/$scale)}]
-    set t1 [image create photo]
-    $t1 copy $im -shrink -zoom $num
-    set t [image create photo {*}$imName]
-    $t copy $t1 -shrink -subsample $sf
-    image delete $t1
-  } else {
-    set num 10
-    set sf [expr {round($num*$scale)}]
-    set t1 [image create photo]
-    $t1 copy $im -shrink -zoom $sf
-    set t [image create photo {*}$imName]
-    $t copy $t1 -shrink -subsample $num
-    image delete $t1
-  }
-  return $t
-}
 
-## LoadImg
-proc loadImg... {} {
-  #puts stderr [format "formats=%s" $::v(imgFmts)]
-  set fName [tk_getOpenFile -filetypes $::v(imgFmts)]
-  if {$fName ne ""} {
-    global f1
-    $f1.i.src config -image {}
-    srcimg blank
-    srcimg read $fName
-    set ::v(pw) [image width srcimg]
-    set ::v(ph) [image height srcimg]
-    set ::v(aspect) [expr {1.0*$::v(pw)/$::v(ph)}]
-    set scale [expr {100.0/$::v(pw)}]    
-    scaleOfImage srcimg $scale srcImgIcon
-    $f1.i.src config -image srcImgIcon
-    set ::v(gX) $::v(pw)
-    set ::v(gY) $::v(ph)
-    set ::v(ppmm) 1
-    $::f1.i.dst config -width $::v(gX) -height $::v(gY)
-  }
-}
+
 
 ##
 proc changePPMM {ppmm} {
@@ -182,59 +75,7 @@ grid $f1.t.gs
 grid {*}[labelEntry $f1.t pps "pixels per scanline" 7]
 grid {*}[labelEntry $f1.t ss  "laser spot size (in mm)" 7]
 grid {*}[labelThing -path $f1.t -name ppmm -text "pixels/mm" -entry -value 1 -cmd "recompute" rc]
-button $f1.t.go -text "go" -command go
+button $f1.t.go -text "go" -command rast::go
 grid $f1.t.go
 
-proc go {} {
-  global f1
-  set W [image width srcimg]
-  set H [image height srcimg]
-  set w [expr {$W/$::v(pps)}]
-  set h [expr {$H/$::v(pps)}]
-  #set xp 0
-  #set yp 0
-  $f1.i.dst delete all
-  for {set y 0} {$y < $h} {incr y 1} {
-    set Y0 [expr {$::v(pps)*($y)}]
-    set Y1 [expr {$::v(pps)*($y+1)}]
-    set Y  [expr {round($::v(pps)*($y+0.5))}]
-    for {set x 0} {$x < $w} {incr x 1} {
-      set X0 [expr {$::v(pps)*($x)}]
-      set X1 [expr {$::v(pps)*($x+1)}]
-      set X  [expr {round($::v(pps)*($x+0.5))}]
-      # find average of pixels xp...x  yp...y X0...X1 Y0...Y1 (centered at X Y)
-      if {1} {
-        set data [srcimg data -from $X0 $Y0 $X1 $Y1 -grayscale]
-	#puts stderr [format "data=%s" $data]
-	catch {unset R; unset G; unset B}
-	foreach row $data {
-	  foreach column $row {
-             scan $column "#%2x%2x%2x" r g b
-             lappend R $r
-             lappend G $g
-             lappend B $b
-	  }
-	  #puts stderr [format "row= %s" $row]
-    }
-#puts stderr $R
-	set R [expr "([join $R "+"])/[llength $R]"]
-	set G [expr "([join $G "+"])/[llength $G]"]
-	set B [expr "([join $B "+"])/[llength $B]"]
-      } else {
-        lassign [srcimg get $X $Y] R G B
-      }
-      set lvl [expr {round(sqrt($R*$R+$G*$G+$B*$B))}]
-      if {[info exists xp] && [info exists yp]} {
-	#$f1.i.dst create line  $xp $yp $X $Y -width $::v(pps) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
-	#$f1.i.dst create line  $xp $yp $X $Y -width $::v(pps) -fill [format "#%02x%02x%02x" $R $G $B]
-	#$f1.i.dst create line  $xp $Y $X $Y -width 1  -fill [format "#%02x%02x%02x" $R $G $B]
-	#$f1.i.dst create line  $xp $Y $X $Y -width $::v(ss)  -fill [format "#%02x%02x%02x" $R $G $B]
-	$f1.i.dst create line  $xp $Y0 $X $Y0 -width $::v(ss)  -fill [format "#%02x%02x%02x" $R $G $B]
-	update idletasks
-      }
-      set xp $X
-    }
-    unset xp
-    set yp $Y
-  }
-}
+
