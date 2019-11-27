@@ -57,24 +57,12 @@ proc srcZoom {zoom} {
   set ::v(srcZoom) $zoom
 }
 
-
-
-##
-proc changePPMM {ppmm} {
-  set ::v(ppmm) $ppmm
-  catch {
-      set ::v(gX) [format "%7.2f" [expr {1.0*$::v(pw)/$::v(ppmm)}]]
-      set ::v(gY) [format "%7.2f" [expr {1.0*$::v(ph)/$::v(ppmm)}]]
-  }
-}
-
 ## toolboc
 grid [frame $f1.t -relief sunken -bd 2] -sticky ew
 button $f1.t.gs -text "Convert to greyscale" -command {srcimg configure -palette 256}
 grid $f1.t.gs
 grid {*}[labelEntry $f1.t pps "pixels per scanline" 7]
 grid {*}[labelEntry $f1.t ss  "laser spot size (in mm)" 7]
-grid {*}[labelThing -path $f1.t -name ppmm -text "pixels/mm" -entry -value 1 -cmd "recompute" rc]
 button $f1.t.go -text "go" -command rast::go
 grid $f1.t.go
 

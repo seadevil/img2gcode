@@ -32,17 +32,16 @@ namespace eval image {
       $v(srcW) config -image {}
       srcimg blank
       srcimg read $fName
-      set ::v(pw) [image width srcimg]
-      set ::v(ph) [image height srcimg]
-      set ::v(aspect) [expr {1.0*$::v(pw)/$::v(ph)}]
-      set scale [expr {100.0/$::v(pw)}]    
+      set v(pw) [image width srcimg]
+      set v(ph) [image height srcimg]
+      set v(aspect) [expr {1.0*$v(pw)/$v(ph)}]
+      set scale [expr {100.0/$v(pw)}]    
       scaleOfImage srcimg $scale srcImgIcon
       $v(srcW) config -image srcImgIcon
-      set ::v(gX) $::v(pw)
-      set ::v(gY) $::v(ph)
-      set ::v(ppmm) 1
-      #$::f1.i.dst config -width $::v(gX) -height $::v(gY)
-      rast::Dst config -width $::v(gX) -height $::v(gY)
+      set ::rast::v(gX) $v(pw)
+      set ::rast::v(gY) $v(ph)
+      set ::rast::v(ppmm) 1
+      rast::Dst config -width $::rast::v(gX) -height $::rast::v(gY)
     }
   }
 
@@ -82,9 +81,9 @@ namespace eval image {
   	grid $w.srcLabel
   	grid $w.src ;#-sticky ew
   	grid $w.srci -sticky nsew
-  	grid {*}[labelThing -path $w.srci -name pw -text "img pixel width" -label -value ?]
-  	grid {*}[labelThing -path $w.srci -name ph -text "img pixel height" -label -value ?]
-  	grid {*}[labelThing -path $w.srci -name aspect -text "img aspect w/h" -label -value ?]
+  	grid {*}[labelThing -path $w.srci -name pw -variable [namespace current]::v(pw) -text "img pixel width" -label -value ?]
+  	grid {*}[labelThing -path $w.srci -name ph -variable [namespace current]::v(ph) -text "img pixel height" -label -value ?]
+  	grid {*}[labelThing -path $w.srci -name aspect -variable [namespace current]::v(aspect) -text "img aspect w/h" -label -value ?]
   	#
   	return $w
   }
