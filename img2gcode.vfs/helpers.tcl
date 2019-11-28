@@ -26,7 +26,7 @@ proc labelThing {args} {
       -entry {lappend scr [subst -novariables {entry $path.${name}e -textvariable [subst {$var}] -justify right; lappend wl $path.${name}e}]}
       -label {lappend scr [subst -novariables {label $path.${name}v -textvariable [subst {$var}] -anchor e -relief sunken -bd 2; lappend wl $path.${name}v}]}
       -value {lappend scr [subst -novariables {set [subst {$var}] [shift args]}]}
-      -cmd   {lappend scr [subst -novariables {button $path.${name}c -text "[shift args]" -command [shift args]; lappend wl $path.${name}c}]}
+      -cmd   {lappend scr [subst -novariables {button $path.${name}c -text "[shift args]" -command "[shift args]"; lappend wl $path.${name}c}]}
       -scale {lappend scr [subst -novariables {scale $path.${name}s -variable [subst {$var}] -orient horizontal {*}[shift args]; lappend wl $path.${name}s}]}
       -variable {set var [shift args]}
       default {error "labelThing bad cmd=$cmd"}

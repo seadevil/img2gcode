@@ -14,6 +14,7 @@ source [file join $v(root) "helpers.tcl"]
 source [file join $v(root) "image.tcl"]
 source [file join $v(root) "machine.tcl"]
 source [file join $v(root) "rasterize.tcl"]
+source [file join $v(root) "wizzard.tcl"]
 
 #puts stderr $::tcl_platform(os)
 
@@ -42,8 +43,9 @@ grid .m.f .m.v
 ## main notebook
 ttk::notebook .nb
 grid .nb -sticky nsew
-.nb add [frame .nb.f1] -text src/dst  ;set f1 .nb.f1
-.nb add [frame .nb.f2] -text log; set f2 .nb.f2
+.nb add [wizzard::Frame .nb.f0] -text "Wizzard"
+.nb add [frame .nb.f1]          -text src/dst  ;set f1 .nb.f1
+.nb add [frame .nb.f2]          -text log; set f2 .nb.f2
 .nb add [machine::Frame .nb.f3] -text machine; set f3 .nb.f3
 
 
