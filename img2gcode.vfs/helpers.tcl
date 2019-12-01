@@ -28,6 +28,7 @@ proc labelThing {args} {
       -value {lappend scr [subst -novariables {set [subst {$var}] [shift args]}]}
       -cmd   {lappend scr [subst -novariables {button $path.${name}c -text "[shift args]" -command "[shift args]"; lappend wl $path.${name}c}]}
       -scale {lappend scr [subst -novariables {scale $path.${name}s -variable [subst {$var}] -orient horizontal {*}[shift args]; lappend wl $path.${name}s}]}
+      -optMenu {lappend scr [subst -novariables {tk_optionMenu $path.${name}o [subst {$var}] {*}[shift args]; lappend wl $path.${name}o}]}
       -variable {set var [shift args]}
       default {error "labelThing bad cmd=$cmd"}
     }
