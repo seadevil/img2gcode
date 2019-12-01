@@ -7,7 +7,7 @@ namespace eval machine {
   variable v
   set v(laserFmt) "M03 S%3d"
   set v(fp) ""
-  proc setLaserIntensity {level} {
+  proc setLaserLevel {level} {
     # expect level to be 0..255 (0=light, 255=dark)
     variable v
     puts $v(fp) [format $v(laserFmt) $level]
@@ -20,6 +20,7 @@ namespace eval machine {
     return $ans
   }
   proc XY {x y} {
+    variable v
   	# expect x,y to be in integer mm
   	puts $v(fp) [format "G1 X%d Y%d" $x $y]
   	# future, buffer lines until you see a change in level or direction, then flush...
@@ -30,6 +31,7 @@ namespace eval machine {
   proc Header {} {
     variable v
     puts $v(fp) [format "G90"] ;# use absolute positioning for the XYZ axes
+    puts $v(fp) [format "G21"] ;# run in mm
   }
   proc openFile... {} {
     variable v
@@ -40,6 +42,7 @@ namespace eval machine {
       set v(fileName) $fName
       set v(fp) [open $fName "w"]
     }
+    Header
   }
   proc Frame {w} {
     frame $w -relief ridge -bd 2 -bg grey
