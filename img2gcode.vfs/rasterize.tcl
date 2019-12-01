@@ -4,7 +4,7 @@
 
 namespace eval rast {
   #
-  proc rasterize {} {
+  proc rasterize {{gcode 0}} {
     global f1
     variable v
     set W [image width srcimg]
@@ -49,12 +49,12 @@ namespace eval rast {
 			set G [expr {$G/$pcount}]
 			set B [expr {$B/$pcount}]
 		  }
-          new {
+      new {
           	#puts stderr [format "x0:x1=%d:%d   y0:y1=%d:%d" $x0 $x1 $y0 $y1]
             set data [srcimg data -from $x0 $y0 $x1 $y1 -grayscale]
-    	    puts stderr [format "data=%s" $data]
-    	    puts stderr [format "get =%s" [srcimg get $x0 $y0]]
-			exit
+    	      puts stderr [format "data=%s" $data]
+    	      puts stderr [format "get =%s" [srcimg get $x0 $y0]]
+			      exit
   	        catch {unset R; unset G; unset B}
   	        foreach row $data {
   	          foreach column $row {
@@ -89,6 +89,10 @@ namespace eval rast {
           	set Xi(0) [expr {$X}]
           	set Xi(1) [expr {$X+$::machine::v(spotX)}]
           	Dst create line $Xi(0) $Yi $Xi(1) $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
+            if {$gcode} {
+              machine::setLaserLevel [machine::mapLevel $lvl]
+              machine::XY $Xi(1) $Yi
+            }
           }
         }
         set xp $X
@@ -96,6 +100,9 @@ namespace eval rast {
       update idletasks
       unset xp
       set yp $Y
+      if {$gcode} {
+        machine::setLaserLevel 0
+      }
     }
   }
 

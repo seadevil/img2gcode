@@ -28,7 +28,7 @@ namespace eval image {
     #puts stderr [format "formats=%s" $v(imgFmts)]
     set fName [tk_getOpenFile -filetypes $v(imgFmts)]
     if {$fName ne ""} {
-      global f1
+      global f1 ;#<---------------------------- remove?
       $v(srcW) config -image {}
       srcimg blank
       srcimg read $fName
@@ -42,6 +42,7 @@ namespace eval image {
       set ::rast::v(gY) $v(ph)
       set ::rast::v(ppmm) 1
       rast::Dst config -width $::rast::v(gX) -height $::rast::v(gY)
+      set v(fName) $fName
     }
   }
 
