@@ -6,6 +6,7 @@ namespace eval rast {
   variable v
   #set v(optizimationLevel) basic
   set v(optLevels) {basic experimental}
+  set v(updateRates) {raster rasterLine never}
   
   proc rasterize {{gcode 0}} {
     variable v
@@ -200,7 +201,7 @@ namespace eval rast {
           foreach {lvl pt} $scanLine {
             if {$lvl != $lvl0} {
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl0 $lvl0 $lvl0]
-              update idletasks
+              if {$v(updateRate) eq "raster"} {update idletasks}
               set lvl0 $lvl
               set pt0 $pt
             }
@@ -209,7 +210,7 @@ namespace eval rast {
             if {$lvl != 255} {
               # dont bother drawing laser-off endlines
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
-              update idletasks
+              if {$v(updateRate) eq "raster"} {update idletasks}
             }
           }
         } else {
@@ -220,7 +221,7 @@ namespace eval rast {
           foreach {pt lvl} $scanLine {
             if {$lvl != $lvl0} {
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl0 $lvl0 $lvl0]
-              update idletasks
+              if {$v(updateRate) eq "raster"} {update idletasks}
               set lvl0 $lvl
               set pt0 $pt
             }
@@ -229,10 +230,11 @@ namespace eval rast {
             if {$lvl != 255} {
               # dont bother drawing laser-off endlines
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
-              update idletasks
+              if {$v(updateRate) eq "raster"} {update idletasks}
             }
           }
         }
+        if {$v(updateRate) eq "rasterLine"} {update idletasks}
         unset scanLine
       } else {
         update idletasks
@@ -277,6 +279,8 @@ namespace eval rast {
   	grid {*}[labelThing -path $w.dsti -name gY   -variable [namespace current]::v(gY) -text "gcode height (mm)" -label -value ?] -sticky ew
   	grid {*}[labelThing -path $w.dsti -name ppmm -variable [namespace current]::v(ppm) -text "pixels/mm" -label -value ? -scale {-from 1 -to 10 -showvalue 0 -command rast::changePPMM}] -sticky ew
     grid {*}[labelThing -path $w.dsti -name optimizationLevel -variable [namespace current]::v(optimizationLevel) -text "Optimization Level" -optMenu $v(optLevels)] -sticky ew
+    grid {*}[labelThing -path $w.dsti -name updateRate -variable [namespace current]::v(updateRate) -text "update rate" -optMenu $v(updateRates)] -sticky ew
+    #grid {*}[labelThing -path $w.dsti -name step6 -text "Step-6 :" -cmd "Generate g-code" {.nb select .nb.f1; rast::rasterize 1}] -sticky ew
 
   	return $w
   }
