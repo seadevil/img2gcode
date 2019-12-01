@@ -8,12 +8,21 @@ namespace eval machine {
   set v(laserFmt) "M03 S%3d"
   set v(feedMmPerMinute) 2400
   set v(fp) ""
-  set v(totalDistance) 0
-  set v(totalTimeSeconds) 0
-  set v(totalTimeHours) 0
-  set v(moves) 0
-  set v(xp) 0
-  set v(yp) 0
+  # note final Init call at the end of this file
+
+  proc Init {} {
+    variable v
+    set v(totalDistance) 0
+    set v(totalTimeSeconds) 0
+    set v(totalTimeHours) 0
+    set v(moves) 0
+    set v(xp) 0
+    set v(yp) 0
+    if {$v(fp) ne ""} {
+      seek $v(fp) 0 start
+      Header
+    }
+  }
 
   proc setLaserLevel {level} {
     # expect level to be 0..255 (0=light, 255=dark)
@@ -28,6 +37,7 @@ namespace eval machine {
     return $ans
   }
   proc XY {x y} {
+    #puts stderr "x=$x y=$y"
     variable v
   	# expect x,y to be in integer mm
   	puts $v(fp) [format "G1 X%d Y%d F%d" $x $y $v(feedMmPerMinute)]
@@ -72,4 +82,5 @@ namespace eval machine {
     grid {*}[labelThing -path $w -name moves    -variable [namespace current]::v(moves) -text "total moves" -label] -sticky ew
     return $w
   }
+  Init
 }

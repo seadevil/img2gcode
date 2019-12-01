@@ -86,6 +86,7 @@ namespace eval rast {
   proc rasterize_N {{gcode 0}} {
     global f1
     variable v
+    if {$gcode} {machine::Init}
     set W [image width srcimg]
     set H [image height srcimg]
    ## gcode window coords
@@ -201,6 +202,10 @@ namespace eval rast {
           foreach {lvl pt} $scanLine {
             if {$lvl != $lvl0} {
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl0 $lvl0 $lvl0]
+              if {$gcode} {
+                machine::setLaserLevel [machine::mapLevel $lvl]
+                machine::XY $pt $Yi
+              }
               if {$v(updateRate) eq "raster"} {update idletasks}
               set lvl0 $lvl
               set pt0 $pt
@@ -211,6 +216,10 @@ namespace eval rast {
               # dont bother drawing laser-off endlines
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
               if {$v(updateRate) eq "raster"} {update idletasks}
+              if {$gcode} {
+                machine::setLaserLevel [machine::mapLevel $lvl]
+                machine::XY $pt $Yi
+              }
             }
           }
         } else {
@@ -221,6 +230,10 @@ namespace eval rast {
           foreach {pt lvl} $scanLine {
             if {$lvl != $lvl0} {
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl0 $lvl0 $lvl0]
+              if {$gcode} {
+                machine::setLaserLevel [machine::mapLevel $lvl0]
+                machine::XY $pt $Yi
+              }
               if {$v(updateRate) eq "raster"} {update idletasks}
               set lvl0 $lvl
               set pt0 $pt
@@ -231,6 +244,10 @@ namespace eval rast {
               # dont bother drawing laser-off endlines
               Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
               if {$v(updateRate) eq "raster"} {update idletasks}
+              if {$gcode} {
+                machine::setLaserLevel [machine::mapLevel $lvl]
+                machine::XY $pt $Yi
+              }
             }
           }
         }
@@ -251,8 +268,8 @@ namespace eval rast {
     variable v
     set v(ppmm) $ppmm
     catch {
-      set v(gX) [format "%7.2f" [expr {1.0*$::image::v(pw)/$v(ppmm)}]]
-      set v(gY) [format "%7.2f" [expr {1.0*$::image::v(ph)/$v(ppmm)}]]
+      set v(gX) [format "%d" [expr {int(1.0*$::image::v(pw)/$v(ppmm))}]]
+      set v(gY) [format "%d" [expr {int(1.0*$::image::v(ph)/$v(ppmm))}]]
     }
   }
 
