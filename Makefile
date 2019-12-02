@@ -50,10 +50,10 @@ img2gcode_$(VERSION).kit :
 
 exe : $(APPNAME)
 $(APPNAME) :
-	cp $(TCLKIT) copy_$(notdir TCLKIT)
-	$(SDX) wrap $(APPNAME) -runtime copy_$(notdir TCLKIT)
+	cp $(TCLKIT) copy_$(notdir $TCLKIT)
+	$(SDX) wrap $(APPNAME) -runtime copy_$(notdir $TCLKIT)
 	#mv img2gcode img2gcode_$(VERSION).exe
-	#rm copy_$(notdir TCLKIT)
+	rm copy_$(notdir $TCLKIT)
 	#chmod a+x img2gcode_$(VERSION).exe
 	chmod a+x $(APPNAME)
 
