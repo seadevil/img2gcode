@@ -12,12 +12,23 @@ namespace eval image {
   #lappend v(imgFmts) *.gif *.ppm 
   lappend v(imgFmts) {"gif Image" {.gif} {GIFF}}
   lappend v(imgFmts) {"ppm Image" {.ppm} {PPMf}}
+  if {[catch {package require -exact img::base 1.4.4}]} {
+    puts stderr "unable to load img::base :\n$::errorInfo"
+  }
+
   if {[catch {package require img::jpeg}]} {
     ## not loaded
-    puts stderr "unable to load jpg image format library"
+    puts stderr "unable to load jpg image format library:\n$::errorInfo"
   } else {
     lappend v(imgFmts) {"JPEG Image" {*.jpg .jpeg} {JPEG}}
   }
+  if {[catch {package require -exact img::png 1.4.3}]} {
+    ## not loaded
+    puts stderr "unable to load png image format library:\n$::errorInfo"
+  } else {
+    lappend v(imgFmts) {"PNG Image" {*.png} {PNGf}}
+  }
+  #
   ## {png .png {PNGf}}
   ## types doc at http://livecode.byu.edu/helps/file-creatorcodes.php
 

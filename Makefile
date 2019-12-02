@@ -10,6 +10,9 @@
 # how to build stand alone apps:
 # * http://www.whoopis.com/howtos/standalone-tcl-tk-binaries-howto.html (close but not correct)
 # * http://wookie.tcl.tk/11861 (better, it uses sdx)
+# * https://wiki.tcl-lang.org/page/Building+Stand-Alone+Tcl%2FTk+Applications+under+Mac+OS+X (best yet, I didnt try it yet)
+# * https://wiki.tcl-lang.org/page/How+do+I+create+a+Tcl-based+"clickable"+Mac+OS+X+application%3F (might bet better?)
+# * https://www.tcl.tk/community/tcl2002/archive/Tcl2002papers/landers-tclkit/tclkit.pdf (dated but still good)
 
 ## runs with errors
 #TCLKIT := ./tclkit-osx-8.5.19 
@@ -50,10 +53,10 @@ img2gcode_$(VERSION).kit :
 
 exe : $(APPNAME)
 $(APPNAME) :
-	cp $(TCLKIT) copy_$(notdir $TCLKIT)
-	$(SDX) wrap $(APPNAME) -runtime copy_$(notdir $TCLKIT)
+	cp $(TCLKIT) copy_$(notdir $(TCLKIT))
+	$(SDX) wrap $(APPNAME) -runtime copy_$(notdir $(TCLKIT))
 	#mv img2gcode img2gcode_$(VERSION).exe
-	rm copy_$(notdir $TCLKIT)
+	rm copy_$(notdir $(TCLKIT))
 	#chmod a+x img2gcode_$(VERSION).exe
 	chmod a+x $(APPNAME)
 

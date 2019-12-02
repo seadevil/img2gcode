@@ -25,6 +25,7 @@ menubutton .m.f -menu .m.f.m -text "File"
 menu .m.f.m
 .m.f.m insert end command -label "Exit" -command exit
 .m.f.m insert 0 command -label "Load Img..." -command image::Load...
+.m.f.m insert 1 command -label "tkcon..." -command {package require tkcon; tkcon::Init}
 
 ## View Menu
 menubutton .m.v -menu .m.v.m -text "View"
@@ -48,6 +49,21 @@ grid .nb -sticky nsew
 .nb add [frame .nb.f2]          -text log; set f2 .nb.f2
 .nb add [machine::Frame .nb.f3] -text machine; set f3 .nb.f3
 
+## tkcon
+proc embedTkcon {w} {
+  set ::embed_args 1
+  #set f [labelframe $p.console -text "Interactive:"]
+  frame $w.test -container 1
+  namespace eval ::tkcon {
+    set OPT(exec) {}
+    set PRIV(root) .tkcon
+    set embed_args {}
+  }
+  option add *tkcon.Use [winfo id $w.test] interactive
+  package require tkcon
+  tkcon::Init
+}
+#embedTkcon .nb.f2
 
 ## photo panel
 grid [frame $f1.i] -sticky nsew
