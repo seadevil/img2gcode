@@ -12,9 +12,9 @@ namespace eval image {
   #lappend v(imgFmts) *.gif *.ppm 
   lappend v(imgFmts) {"gif Image" {.gif} {GIFF}}
   lappend v(imgFmts) {"ppm Image" {.ppm} {PPMf}}
-  if {[catch {package require -exact img::base 1.4.4}]} {
-    puts stderr "unable to load img::base :\n$::errorInfo"
-  }
+  #if {[catch {package require -exact img::base 1.4.4}]} {
+  #  puts stderr "unable to load img::base :\n$::errorInfo"
+  #}
 
   if {[catch {package require img::jpeg}]} {
     ## not loaded

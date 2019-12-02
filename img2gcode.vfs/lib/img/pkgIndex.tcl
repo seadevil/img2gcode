@@ -44,7 +44,7 @@ package ifneeded dorkus 1.1.1 {
   puts stderr "loading dorkus..."
   package provide dorkus 1.1.1
 }
-package ifneeded hide_img::png 1.4.3 [string map [list @ $dir] {
+package ifneeded img::png 1.4.3 [string map [list @ $dir] {
   puts stderr "loading the lib/ png (rwm)"
   package require img::base 1.4-2
   package require Tcl 8.4
