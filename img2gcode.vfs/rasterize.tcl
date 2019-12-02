@@ -105,6 +105,7 @@ namespace eval rast {
       set y0 [expr {int(round($H-$v(ppmm)*($Y+$::machine::v(spotY))))}];#<------- image-rows bottom (N pixels below top), but dont scan this row twice...
       # compute inverted Yi (canvas coords Y is at top)
       set Yi [expr {($Y1-$Y)+(($::machine::v(spotY))/2)}] ;# add a 1/2Y offset to center the line within the raster-spot-row
+      set Yg [expr {($Y)+(($::machine::v(spotY))/2)}] ;# add a 1/2Y offset to center the line within the raster-spot-row
       #Dst create line $X0 $Yi $X1 $Yi -width 1 -fill red -tags hilight ; update idletasks
       #Dst delete hilight
       for {set X $X0} {$X < $X1} {incr X $::machine::v(spotX)} {
@@ -171,7 +172,7 @@ namespace eval rast {
             Dst create line $Xi(0) $Yi $Xi(1) $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
             if {$gcode} {
               machine::setLaserLevel [machine::mapLevel $lvl]
-              machine::XY $Xi(1) $Yi
+              machine::XY $Xi(1) $Yg
             }
           }
           newest {
@@ -189,7 +190,8 @@ namespace eval rast {
           set lvl0 [shift scanLine]
           set pt0 [shift scanLine]
           #  walk line lookng for non-0 level
-          while {$lvl0 == 255} {
+          #while {$lvl0 == 255} {}
+          while {[lvl== $lvl0 255]} {
             if {[llength $scanLine] == 0} {
               set pt $pt0
               set lvl $lvl0
@@ -198,13 +200,20 @@ namespace eval rast {
             set lvl0 [shift scanLine]
             set pt0 [shift scanLine]
           }
-          # move to new line start from lastX,?? to pt0,Yi
+          if {[llength $scanLine] > 0} {
+            # move to new line start from lastX,?? to pt0,Yi
+            machine::setLaserLevel 0
+            machine::XY $pt0 $Yg
+          } else {
+            #break
+          }
           foreach {lvl pt} $scanLine {
-            if {$lvl != $lvl0} {
-              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl0 $lvl0 $lvl0]
+            #if {$lvl != $lvl0} {}
+            if {[lvl!= $lvl $lvl0]} {
+              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" [lvlMask $lvl0] [lvlMask $lvl0] [lvlMask $lvl0]]
               if {$gcode} {
-                machine::setLaserLevel [machine::mapLevel $lvl]
-                machine::XY $pt $Yi
+                machine::setLaserLevel [machine::mapLevel [lvlMask $lvl]]
+                machine::XY $pt $Yg
               }
               if {$v(updateRate) eq "raster"} {update idletasks}
               set lvl0 $lvl
@@ -212,13 +221,14 @@ namespace eval rast {
             }
           }
           if {$pt != $pt0} { ;# complete the scanline which was unchanged
-            if {$lvl != 255} {
+            #if {$lvl != 255} {}
+            if {[lvl!= $lvl 255]} {
               # dont bother drawing laser-off endlines
-              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
+              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" [lvlMask $lvl] [lvlMask $lvl] [lvlMask $lvl]]
               if {$v(updateRate) eq "raster"} {update idletasks}
               if {$gcode} {
-                machine::setLaserLevel [machine::mapLevel $lvl]
-                machine::XY $pt $Yi
+                machine::setLaserLevel [machine::mapLevel [lvlMask $lvl]]
+                machine::XY $pt $Yg
               }
             }
           }
@@ -227,12 +237,29 @@ namespace eval rast {
           set scanLine [lreverse $scanLine]
           set pt0 [shift scanLine]
           set lvl0 [shift scanLine]
+          #  walk line lookng for non-0 level
+          #while {$lvl0 == 255} {}
+          while {[lvl== $lvl0 255]} {
+            if {[llength $scanLine] == 0} {
+              set pt $pt0
+              set lvl $lvl0
+              break
+            }
+            set pt0 [shift scanLine]
+            set lvl0 [shift scanLine]
+          }
+          if {[llength $scanLine] > 0} {
+            # move to new line start from lastX,?? to pt0,Yi
+            machine::setLaserLevel 0
+            machine::XY $pt0 $Yg
+          }
           foreach {pt lvl} $scanLine {
-            if {$lvl != $lvl0} {
-              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl0 $lvl0 $lvl0]
+            #if {$lvl != $lvl0} {}
+            if {[lvl!= $lvl $lvl0]} {
+              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" [lvlMask $lvl0] [lvlMask $lvl0] [lvlMask $lvl0]]
               if {$gcode} {
-                machine::setLaserLevel [machine::mapLevel $lvl0]
-                machine::XY $pt $Yi
+                machine::setLaserLevel [machine::mapLevel [lvlMask $lvl0]]
+                machine::XY $pt $Yg
               }
               if {$v(updateRate) eq "raster"} {update idletasks}
               set lvl0 $lvl
@@ -240,13 +267,14 @@ namespace eval rast {
             }
           }
           if {$pt != $pt0} { ;# complete the scanline which was unchanged
-            if {$lvl != 255} {
+            #if {$lvl != 255} {}
+            if {[lvl!= $lvl 255]} {
               # dont bother drawing laser-off endlines
-              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
+              Dst create line $pt0 $Yi $pt $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" [lvlMask $lvl] [lvlMask $lvl] [lvlMask $lvl]]
               if {$v(updateRate) eq "raster"} {update idletasks}
               if {$gcode} {
-                machine::setLaserLevel [machine::mapLevel $lvl]
-                machine::XY $pt $Yi
+                machine::setLaserLevel [machine::mapLevel [lvlMask $lvl]]
+                machine::XY $pt $Yg
               }
             }
           }
@@ -258,11 +286,18 @@ namespace eval rast {
       }
       unset xp
       set yp $Y
-      if {$gcode} {
-        machine::setLaserLevel 0
-      }
+#      if {$gcode} {
+#        machine::setLaserLevel 0
+#      }
     } ;# <------------------- end of y loop
   }
+
+  set v(lvlMask) 0xF0
+  proc lvlMask {a} {variable v; return [expr {$a & $v(lvlMask)}]}
+  proc lvl== {a b} {variable v; return [expr {($a & $v(lvlMask))==($b & $v(lvlMask))}]}
+  proc lvl<  {a b} {variable v; return [expr {($a & $v(lvlMask))< ($b & $v(lvlMask))}]}
+  proc lvl!= {a b} {variable v; return [expr {($a & $v(lvlMask))!=($b & $v(lvlMask))}]}
+
 
   proc changePPMM {ppmm} {
     variable v
@@ -298,6 +333,7 @@ namespace eval rast {
     grid {*}[labelThing -path $w.dsti -name optimizationLevel -variable [namespace current]::v(optimizationLevel) -text "Optimization Level" -optMenu $v(optLevels)] -sticky ew
     grid {*}[labelThing -path $w.dsti -name updateRate -variable [namespace current]::v(updateRate) -text "update rate" -optMenu $v(updateRates)] -sticky ew
     #grid {*}[labelThing -path $w.dsti -name step6 -text "Step-6 :" -cmd "Generate g-code" {.nb select .nb.f1; rast::rasterize 1}] -sticky ew
+    grid {*}[labelThing -path $w.dsti -name lvlMask -variable [namespace current]::v(lvlMask) -text "level Mask" -entry] -sticky ew
 
   	return $w
   }

@@ -5,7 +5,7 @@
 
 namespace eval machine {
   variable v
-  set v(laserFmt) "M03 S%3d"
+  set v(laserFmt) "M03 S%-1d"
   set v(feedMmPerMinute) 2400
   set v(fp) ""
   # note final Init call at the end of this file
