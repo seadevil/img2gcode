@@ -202,8 +202,10 @@ namespace eval rast {
           }
           if {[llength $scanLine] > 0} {
             # move to new line start from lastX,?? to pt0,Yi
-            machine::setLaserLevel 0
-            machine::XY $pt0 $Yg
+            if {$gcode} {
+              machine::setLaserLevel 0
+              machine::XY $pt0 $Yg
+            }
           } else {
             #break
           }
@@ -250,8 +252,10 @@ namespace eval rast {
           }
           if {[llength $scanLine] > 0} {
             # move to new line start from lastX,?? to pt0,Yi
-            machine::setLaserLevel 0
-            machine::XY $pt0 $Yg
+            if {$gcode} {
+              machine::setLaserLevel 0
+              machine::XY $pt0 $Yg
+            }
           }
           foreach {pt lvl} $scanLine {
             #if {$lvl != $lvl0} {}
