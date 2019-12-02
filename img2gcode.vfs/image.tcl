@@ -31,17 +31,29 @@ namespace eval image {
       global f1 ;#<---------------------------- remove?
       $v(srcW) config -image {}
       srcimg blank
+      image delete srcimg
+      catch {image delete srcImgIcon}
+      image create photo srcimg ;#
       srcimg read $fName
       set v(pw) [image width srcimg]
       set v(ph) [image height srcimg]
       set v(aspect) [expr {1.0*$v(pw)/$v(ph)}]
-      set scale [expr {100.0/$v(pw)}]    
+      set scale [expr {100.0/$v(pw)}]
       scaleOfImage srcimg $scale srcImgIcon
+      ## adjust gcode/canvas settings
       $v(srcW) config -image srcImgIcon
-      set ::rast::v(gX) $v(pw)
-      set ::rast::v(gY) $v(ph)
-      set ::rast::v(ppmm) 1
-      rast::Dst config -width $::rast::v(gX) -height $::rast::v(gY)
+      if {0} {
+        set ::rast::v(gX) $v(pw)
+        set ::rast::v(gY) $v(ph)
+        set ::rast::v(ppmm) 1
+      } else {
+        ::rast::changePPMM 1
+        while {($::rast::v(gX) > 800) || ($::rast::v(gY) > 600)} {
+    	  set ::rast::v(ppmm) [expr {$::rast::v(ppmm)*2}]
+      	  ::rast::changePPMM $::rast::v(ppmm)
+        }
+      }
+      #rast::Dst config -width $::rast::v(gX) -height $::rast::v(gY)
       set v(fName) $fName
     }
   }

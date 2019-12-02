@@ -302,10 +302,12 @@ namespace eval rast {
   proc changePPMM {ppmm} {
     variable v
     set v(ppmm) $ppmm
-    catch {
+    eval {
       set v(gX) [format "%d" [expr {int(1.0*$::image::v(pw)/$v(ppmm))}]]
       set v(gY) [format "%d" [expr {int(1.0*$::image::v(ph)/$v(ppmm))}]]
     }
+    #puts stderr "changePPMM: ppmm=$ppmm gX=$v(gX) gY=$v(gY)"
+    Dst config -width $v(gX) -height $v(gY)
   }
 
 
@@ -329,7 +331,7 @@ namespace eval rast {
   	#
   	grid {*}[labelThing -path $w.dsti -name gX   -variable [namespace current]::v(gX) -text "gcode width (mm)" -label -value ?] -sticky ew
   	grid {*}[labelThing -path $w.dsti -name gY   -variable [namespace current]::v(gY) -text "gcode height (mm)" -label -value ?] -sticky ew
-  	grid {*}[labelThing -path $w.dsti -name ppmm -variable [namespace current]::v(ppm) -text "pixels/mm" -label -value ? -scale {-from 1 -to 10 -showvalue 0 -command rast::changePPMM}] -sticky ew
+    grid {*}[labelThing -path $w.dsti -name ppmm -variable [namespace current]::v(ppmm) -text "pixels/mm" -label -scale {-from 1 -to 10 -showvalue 0 -command rast::changePPMM}] -sticky ew
     grid {*}[labelThing -path $w.dsti -name optimizationLevel -variable [namespace current]::v(optimizationLevel) -text "Optimization Level" -optMenu $v(optLevels)] -sticky ew
     grid {*}[labelThing -path $w.dsti -name updateRate -variable [namespace current]::v(updateRate) -text "update rate" -optMenu $v(updateRates)] -sticky ew
     #grid {*}[labelThing -path $w.dsti -name step6 -text "Step-6 :" -cmd "Generate g-code" {.nb select .nb.f1; rast::rasterize 1}] -sticky ew
