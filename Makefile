@@ -15,7 +15,7 @@
 # * https://www.tcl.tk/community/tcl2002/archive/Tcl2002papers/landers-tclkit/tclkit.pdf (dated but still good)
 
 ## runs with errors
-#TCLKIT := ./tclkit-osx-8.5.19 
+TCLKIT := ./tclkit-osx-8.5.19 
 
 ## runs with prompt, seems to skip main?
 #TCLKIT := ./tclkit-osx-8.5.19_cfs
@@ -27,7 +27,7 @@
 #TCLKIT := ./tclkit-osx-8.6.1h
 #TCLKIT := ./tclkit-osx-8.6.1_0.9.5
 #TCLKIT := ./tclkit-osx-8.6.9_0.11.
-TCLKIT := ./tclkit-8.6.3-macosx10.5-ix86+x86_64
+#TCLKIT := ./tclkit-8.6.3-macosx10.5-ix86+x86_64
 ## from: https://tclkits.rkeene.org/fossil/wiki/Downloads
 
 
@@ -59,6 +59,14 @@ $(APPNAME) :
 	rm copy_$(notdir $(TCLKIT))
 	#chmod a+x img2gcode_$(VERSION).exe
 	chmod a+x $(APPNAME)
+
+bf :
+	cp $(TCLKIT) copy_$(notdir $(TCLKIT))
+	#echo "source vfs_mkcl_1.4.tcl; set argv {sdx-20110317.kit wrap img2gcode -runtime copy_tclkit-osx-8.5.19}; package require starkit; source $(SDXKIT)" | $(TCLKIT)
+	echo "source mkclvfs_1.5.tcl; set argv {sdx-20110317.kit wrap img2gcode -runtime copy_tclkit-osx-8.5.19}; package require starkit; source $(SDXKIT)" | $(TCLKIT)
+	rm copy_$(notdir $(TCLKIT))
+	chmod a+x $(APPNAME)
+
 
 app :
 	$(MAKE) exe
