@@ -30,7 +30,7 @@ else
   TCLKIT = $(TCLKIT_Linux)
   HOSTOS := Linux
  else
-  ifeq ($(UNAME_S,Darwin)
+  ifeq ($(UNAME_S),Darwin)
    TARGETOS := Darwin
    TCLKIT = $(TCLKIT_Osx)
    HOSTOS := Darwin
@@ -41,7 +41,7 @@ else
 endif
 
 ifeq ($(TARGETOS),Darwin)
- TARGET_TCLKIT = $(TCLKIT_Darwin)
+ TARGET_TCLKIT = $(TCLKIT_Osx)
  EXENAME = $(APPNAME)
 else
  ifeq ($(TARGETOS),Linux)
@@ -61,6 +61,7 @@ help :
 	@echo "no help for you"
 debug :
 	@echo "HOSTOS=$(HOSTOS)"
+	@echo "TARGETOS=$(TARGETOS)"
 	@echo "TCLKIT=$(TCLKIT)"
 	@echo "TARGET_TCLKIT=$(TARGET_TCLKIT)"
 	@echo "SDX=$(SDX)"
@@ -77,8 +78,10 @@ tteesstt :
 #TCLKIT_Osx := ./tclkit-osx-8.6.1h
 #TCLKIT_Osx := ./tclkit-osx-8.6.1_0.9.5
 #TCLKIT_Osx := ./tclkit-osx-8.6.9_0.11.
-TCLKIT_Osx := ./tclkit-8.6.3-macosx10.5-ix86+x86_64
+#-TCLKIT_Osx := ./tclkit-osx-8.6.3.1
+#TCLKIT_Osx := ./tclkit-8.6.3-macosx10.5-ix86+x86_64
 ## from: https://tclkits.rkeene.org/fossil/wiki/Downloads
+TCLKIT_Osx := ./kbsvq8.6-gui
 
 ## Kits for Win
 TCLKIT_Win := ./tclkit-win32.upx_8.5.1.exe
@@ -144,4 +147,17 @@ clean :
 	-rm img2gcode_$(VERSION).exe
 	-rm $(APPNAME)
 
+####### build kits
+osxkit : TMP:= newtmp
+osxkit :
+	mkdir $(TMP)
+	cd $(TMP) ; wget http://teapot.activestate.com/application/name/base-tcl-thread/ver/8.6.4.1.299146/arch/macosx10.5-i386-x86_64/file.exe\
+	          ; mv file.exe bootstrap_tclkit \
+	          ; chmod a+x bootstrap_tclkit
+	#cd $(TMP) ; curl -o kbs.tcl -L http://sourceforge.net/projects/kbskit/files/kbs/0.4.9/kbs.tcl/download
+	cd $(TMP) ; wget -O kbs.tcl http://sourceforge.net/projects/kbskit/files/kbs/0.4.9/kbs.tcl/download
+	#cd $(TMP) ; ../tclkit-osx-8.6.3.1 kbs.tcl -v install kbskit8.6
+	cd $(TMP) ; ./bootstrap_tclkit kbs.tcl -r -v sources kbskit8.6
+	cd $(TMP) ; ./bootstrap_tclkit kbs.tcl -r -v install kbskit8.6
+	#cp $(TMP)/buildDarwin/bin/kbsvq8.6-gui ./
 

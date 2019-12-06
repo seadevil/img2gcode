@@ -12,22 +12,24 @@ namespace eval image {
   #lappend v(imgFmts) *.gif *.ppm 
   lappend v(imgFmts) {"gif Image" {.gif} {GIFF}}
   lappend v(imgFmts) {"ppm Image" {.ppm} {PPMf}}
-  #if {[catch {package require -exact img::base 1.4.4}]} {
-  #  puts stderr "unable to load img::base :\n$::errorInfo"
-  #}
-
+  if {[catch {package require img::base 1.4.4}]} {
+    puts stderr "unable to load img::base :\n$::errorInfo"
+  }
+  puts stderr "============================================ jpg"
   if {[catch {package require img::jpeg}]} {
     ## not loaded
     puts stderr "unable to load jpg image format library:\n$::errorInfo"
   } else {
     lappend v(imgFmts) {"JPEG Image" {*.jpg .jpeg} {JPEG}}
   }
-  if {[catch {package require -exact img::png 1.4.3}]} {
+  puts stderr "============================================ png"
+  if {[catch {package require -exact img::png 1.4.4}]} {
     ## not loaded
     puts stderr "unable to load png image format library:\n$::errorInfo"
   } else {
     lappend v(imgFmts) {"PNG Image" {*.png} {PNGf}}
   }
+  puts stderr "============================================"
   #
   ## {png .png {PNGf}}
   ## types doc at http://livecode.byu.edu/helps/file-creatorcodes.php
@@ -45,9 +47,15 @@ namespace eval image {
       image delete srcimg
       catch {image delete srcImgIcon}
       image create photo srcimg ;#
-      srcimg read $fName
+      puts stderr "read-img: [srcimg read $fName]"
       set v(pw) [image width srcimg]
       set v(ph) [image height srcimg]
+puts stderr [format "v(pw)='%s' v(ph)='%s'" $v(pw) $v(ph)]
+      if {($v(pw) == 0) || ($v(ph) == 0) } {
+      	# fallback for the p?? error
+      	set v(pw) 100
+      	set v(ph) 100
+      }
       set v(aspect) [expr {1.0*$v(pw)/$v(ph)}]
       set scale [expr {100.0/$v(pw)}]
       scaleOfImage srcimg $scale srcImgIcon
