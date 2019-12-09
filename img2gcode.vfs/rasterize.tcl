@@ -18,6 +18,24 @@ namespace eval rast {
     }
   }
 
+  set v(gamma) 2.2
+  proc gammaF {x} {
+    variable v
+    return [expr {255*(pow(($x/255.0),(1.0/$v(gamma))))}]
+  }
+  proc buildGammaLut {gamma} {
+    variable LUT
+    variable v
+    set v(gamma) $gamma
+    set min [gammaF 0]
+    set max [gammaF 255]
+    set dv [expr {$max-$min}]
+    for {set i 0} {$i<256} {incr i} {
+      set LUT($i) [expr {int(round((1.0*([gammaF $i]-$min)/$dv)*255))}]
+    }
+  }
+  buildGammaLut 2.2
+
   proc rasterize_1 {{gcode 0}} {
     global f1
     variable v
@@ -160,7 +178,17 @@ namespace eval rast {
             lassign [srcimg get $x0 $y0] R G B
           }
         }
-        set lvl [expr {int($R*0.3+$G*0.59+$B*0.11)}]
+        switch -- "gamma" {
+          gamma {
+            variable LUT
+
+        # gamma
+            set lvl $LUT([expr {int($R*0.3+$G*0.59+$B*0.11)}])
+          }
+          default {
+            set lvl [expr {int($R*0.3+$G*0.59+$B*0.11)}]
+          }
+        }
         switch {newest} {
           old {
             if {[info exists xp] && [info exists yp]} {
