@@ -11,6 +11,7 @@ namespace eval rast {
   
   proc rasterize {{gcode 0}} {
     variable v
+    machine::Init
     switch -- $v(optimizationLevel) {
       basic        {rasterize_1 $gcode}
       experimental {rasterize_N $gcode}
@@ -324,6 +325,9 @@ namespace eval rast {
 #        machine::setLaserLevel 0
 #      }
     } ;# <------------------- end of y loop
+    if {$gcode} {
+      machine::Close
+    }
   }
 
   set v(lvlMask) 0xF0

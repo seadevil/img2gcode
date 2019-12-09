@@ -18,8 +18,15 @@ namespace eval machine {
     set v(moves) 0
     set v(xp) 0
     set v(yp) 0
+    if {$v(fp) eq ""} {
+      if {[info exists v(fileName)] && $v(fileName) ne ""} {
+        set v(fp) [open $v(fileName) "w"]
+      } else {
+        error "No defined file name"
+      }
+    }
     if {$v(fp) ne ""} {
-      seek $v(fp) 0 start
+      #seek $v(fp) 0 start
       Header
     }
   }
@@ -56,6 +63,17 @@ namespace eval machine {
     puts $v(fp) [format "G90"] ;# use absolute positioning for the XYZ axes
     puts $v(fp) [format "G21"] ;# run in mm
   }
+  proc Footer {} {
+    variable v
+  }
+  proc Close {} {
+    variable v
+    if {$v(fp) ne ""} {
+      Footer
+      close $v(fp)
+        set v(fp) ""
+    }
+  }
   proc openFile... {} {
     variable v
     set initialName [file rootname [file tail $::image::v(fName)]].gcode
@@ -82,5 +100,5 @@ namespace eval machine {
     grid {*}[labelThing -path $w -name moves    -variable [namespace current]::v(moves) -text "total moves" -label] -sticky ew
     return $w
   }
-  Init
+  #Init
 }
