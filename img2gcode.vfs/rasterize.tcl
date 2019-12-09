@@ -7,6 +7,7 @@ namespace eval rast {
   #set v(optizimationLevel) basic
   set v(optLevels) {basic experimental}
   set v(updateRates) {raster rasterLine never}
+  set v(updateRate) rasterLine
   
   proc rasterize {{gcode 0}} {
     variable v
@@ -68,13 +69,14 @@ namespace eval rast {
         set Xi(0) [expr {$X}]
         set Xi(1) [expr {$X+$::machine::v(spotX)}]
         Dst create line $Xi(0) $Yi $Xi(1) $Yi -width $::machine::v(spotY) -fill [format "#%02x%02x%02x" $lvl $lvl $lvl]
+        if {$v(updateRate) eq "raster"} {update idletasks}
         if {$gcode} {
           machine::setLaserLevel [machine::mapLevel $lvl]
           machine::XY $Xi(1) $Yi
         }
         set xp $X
       } ;# <----------------- end of x loop
-      update idletasks
+      if {$v(updateRate) eq "rasterLine"} {update idletasks}
       unset xp
       set yp $Y
       if {$gcode} {

@@ -7,6 +7,9 @@
 namespace eval image {
   #
   variable v
+  set v(maxDisplayX) 800
+  set v(maxDisplayY)  600
+
   set v(imgFmts) {}
   ## natine fmts
   #lappend v(imgFmts) *.gif *.ppm 
@@ -47,11 +50,12 @@ namespace eval image {
       image delete srcimg
       catch {image delete srcImgIcon}
       image create photo srcimg ;#
-      puts stderr "read-img: [srcimg read $fName]"
+      srcimg read $fName
       set v(pw) [image width srcimg]
       set v(ph) [image height srcimg]
-puts stderr [format "v(pw)='%s' v(ph)='%s'" $v(pw) $v(ph)]
+      #puts stderr [format "v(pw)='%s' v(ph)='%s'" $v(pw) $v(ph)]
       if {($v(pw) == 0) || ($v(ph) == 0) } {
+      	puts stderr "?? something failed in the image load..."
       	# fallback for the p?? error
       	set v(pw) 100
       	set v(ph) 100
@@ -67,8 +71,12 @@ puts stderr [format "v(pw)='%s' v(ph)='%s'" $v(pw) $v(ph)]
         set ::rast::v(ppmm) 1
       } else {
         ::rast::changePPMM 1
-        while {($::rast::v(gX) > 800) || ($::rast::v(gY) > 600)} {
-    	  set ::rast::v(ppmm) [expr {$::rast::v(ppmm)*2}]
+        ## scale down the rast canvas based on maxDisplay size variables
+        #puts stderr {($::rast::v(gX) > $v(maxDisplayX)) || ($::rast::v(gY) > $v(maxDisplayY))}
+        #puts stderr "($::rast::v(gX) > $v(maxDisplayX) ) || ($::rast::v(gY) > $v(maxDisplayY) )"
+        while {($::rast::v(gX) > $v(maxDisplayX)) || ($::rast::v(gY) > $v(maxDisplayY))} {
+          #puts stderr "scale down by 2" ; flush stderr
+    	    set ::rast::v(ppmm) [expr {$::rast::v(ppmm)*2}]
       	  ::rast::changePPMM $::rast::v(ppmm)
         }
       }
@@ -102,7 +110,7 @@ puts stderr [format "v(pw)='%s' v(ph)='%s'" $v(pw) $v(ph)]
 
   proc Frame {w} {
   	frame $w -relief ridge -bd 2 -bg grey
-  	label $w.srcLabel -text "Source Image"
+  	button $w.srcLabel -text "Source Image" -command [namespace code {Load...}]
   	#menubutton $f1.i.srcZoom -menu $f1.i.srcZoom.m -text "Zoom"
   	#menu $f1.i.srcZoom.m insert end -label "Fit" -command "srcZoom 1"
   	image create photo srcimg ;#
